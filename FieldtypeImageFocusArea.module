@@ -28,7 +28,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
             'version' => '0.2.0',
             'author' => "Philipp Schreier (interrobang)",
-            'requires' => array('ProcessWire>=2.5.0', 'InputfieldImageFocusArea')
+            'requires' => array('ProcessWire>=2.5.0', 'InputfieldImageFocusArea'),
+            'icon' => 'image'
         );
     }
 

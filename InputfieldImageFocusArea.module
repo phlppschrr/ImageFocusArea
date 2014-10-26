@@ -30,6 +30,7 @@ class InputfieldImageFocusArea extends InputfieldImage
             'author' => "Philipp Schreier (interrobang)",
             'requires' => array('ProcessWire>=2.5.0', 'FieldtypeImageFocusArea'),
             'installs' => array('FieldtypeImageFocusArea'),
+            'icon' => 'image'
         );
     }
 
