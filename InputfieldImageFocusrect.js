@@ -33,6 +33,7 @@ $(document).ready(function () {
         $.magnificPopup.open({
             type: 'ajax',
             closeOnContentClick: false,
+            closeOnBgClick:false,
             closeBtnInside: false,
             items: {
                 src: ['<div id="image-focusrect-modal">',
