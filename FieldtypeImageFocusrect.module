@@ -46,7 +46,7 @@ class FieldtypeImageFocusrect extends FieldtypeImage
         if ($pageImage->focus) {
             $options = $event->arguments('options');
 
-            if (!isset($options['cropping']) || $options['cropping']=='') {
+            if (!isset($options['cropping']) || $options['cropping'] == '') {
                 $focusMode = 'align';
             } elseif (in_array($options['cropping'], array('align', 'inside', 'outside'), true)) {
                 $focusMode = $options['cropping'];
@@ -63,6 +63,14 @@ class FieldtypeImageFocusrect extends FieldtypeImage
             $cropping = array();
             $cropping[0] = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
             $cropping[1] = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
+
+            if ($focusMode == 'outside'
+                && isset($options['upscaling']) && $options['upscaling'] == false
+                && (($targetWidth > $focusSettings->w) || ($targetHeight > $focusSettings->h))
+            ) {
+                // When upscaling=false and focusMode=outside, but the target size is larger then the focusArea switch to 'align' mode
+                $focusMode = 'align';
+            };
 
             switch ($focusMode) {
                 case 'align':
