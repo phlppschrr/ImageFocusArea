@@ -36,6 +36,7 @@ class FieldtypeImageFocusrect extends FieldtypeImage
     {
         $this->defaultInputfieldClass = 'InputfieldImageFocusrect';
         $this->addHookBefore('Pageimage::size', $this, 'hookPageimageSize');
+        $this->addHookProperty("Pageimage::cssBackgroundPosition", $this, "cssBackgroundPosition");
     }
 
 
@@ -143,6 +144,49 @@ class FieldtypeImageFocusrect extends FieldtypeImage
 
             $event->arguments('options', $argumentOptions);
         }
+    }
+
+    /**
+     * experimental approach to calculate a background-position for using together with background-position:cover
+     * @param HookEvent $event
+     */
+    public function cssBackgroundPosition(HookEvent $event){
+        $pageImage = $event->object;
+        $pos = '50% 50%';
+        if($pageImage->focus){
+            $focusSettings = json_decode($pageImage->focus);
+            $originalWidth = $pageImage->width();
+            $originalHeight = $pageImage->height();
+            $centerX = $originalWidth/2;
+            $centerY = $originalHeight/2;
+
+            // horizontal position
+            if($focusSettings->x < $centerX && $focusSettings->x2 <= $centerX){
+                // align focusArea left
+                $posX = ($focusSettings->x / $originalWidth) * 100 . '%';
+            } elseif($focusSettings->x < $centerX && $focusSettings->x2 >= $centerX){
+                // align focusArea center
+                $posX = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
+            } else {
+                // align focusArea right
+                $posX = ($focusSettings->x2 / $originalWidth) * 100 . '%';
+            }
+
+            // vertical position
+            if($focusSettings->y < $centerY && $focusSettings->y2 <= $centerY){
+                // align focusArea top
+                $posY = ($focusSettings->y / $originalHeight) * 100 . '%';
+            } elseif($focusSettings->y < $centerY && $focusSettings->y2 >= $centerY){
+                // align focusArea center
+                $posY = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
+            } else {
+                // align focusArea right
+                $posY = ($focusSettings->y2 / $originalHeight) * 100 . '%';
+            }
+
+            $pos = $posX . ' ' . $posY;
+        }
+        $event->return = $pos;
     }
 
     /**
