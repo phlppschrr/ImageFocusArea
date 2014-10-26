@@ -44,13 +44,45 @@ class FieldtypeImageFocusrect extends FieldtypeImage
         $pageImage = $event->object;
 
         if ($pageImage->focus) {
-            $options = $event->arguments('options');
+            $argumentOptions = $event->arguments('options');
+            $configOptions = wire('config')->imageSizerOptions;
+            if(!is_array($configOptions)) $configOptions = array();
 
-            if (!isset($options['cropping']) || $options['cropping'] == '') {
+            if(!is_array($argumentOptions)) {
+                if(is_string($argumentOptions)) {
+                    // optionally allow a string to be specified with crop direction, for shorter syntax
+                    if(strpos($argumentOptions, ',') !== false) $argumentOptions = explode(',', $argumentOptions); // 30,40
+                    $argumentOptions = array('cropping' => $argumentOptions);
+                } else if(is_int($argumentOptions)) {
+                    // optionally allow an integer to be specified with quality, for shorter syntax
+                    $argumentOptions = array('quality' => $argumentOptions);
+                } else if(is_bool($argumentOptions)) {
+                    // optionally allow a boolean to be specified with upscaling toggle on/off
+                    $argumentOptions = array('upscaling' => $argumentOptions);
+                }
+            }
+
+            $defaultOptions = array(
+                'upscaling' => true,
+                'cropping' => true,
+                'quality' => 90,
+                'suffix' => array(), // can be array of suffixes or string of 1 suffix
+                'forceNew' => false,  // force it to create new image even if already exists
+            );
+
+            $configOptions = wire('config')->imageSizerOptions;
+            if(!is_array($configOptions)) $configOptions = array();
+            $mergedOptions = array_merge($defaultOptions, $configOptions, $argumentOptions);
+
+
+            if (!isset($argumentOptions['cropping']) || $argumentOptions['cropping'] == '') {
+                // TODO: default focusMode 'align', make this configuarable?
                 $focusMode = 'align';
-            } elseif (in_array($options['cropping'], array('align', 'inside', 'outside'), true)) {
-                $focusMode = $options['cropping'];
+            } elseif (in_array($argumentOptions['cropping'], array('align', 'inside', 'outside'), true)) {
+                // a valid cropping option for this field was found
+                $focusMode = $argumentOptions['cropping'];
             } else {
+                // use the user set cropping option, don't do anything here
                 return;
             }
 
@@ -65,7 +97,7 @@ class FieldtypeImageFocusrect extends FieldtypeImage
             $cropping[1] = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
 
             if ($focusMode == 'outside'
-                && isset($options['upscaling']) && $options['upscaling'] == false
+                && isset($mergedOptions['upscaling']) && $mergedOptions['upscaling'] == false
                 && (($targetWidth > $focusSettings->w) || ($targetHeight > $focusSettings->h))
             ) {
                 // When upscaling=false and focusMode=outside, but the target size is larger then the focusArea switch to 'align' mode
@@ -75,7 +107,7 @@ class FieldtypeImageFocusrect extends FieldtypeImage
             switch ($focusMode) {
                 case 'align':
                     // use center of croppingBox for alignment
-                    $options['cropping'] = $cropping;
+                    $argumentOptions['cropping'] = $cropping;
                     break;
                 case 'inside':
                     $cropExtra = array(
@@ -84,9 +116,9 @@ class FieldtypeImageFocusrect extends FieldtypeImage
                         'w' => (int)$focusSettings->w,
                         'h' => (int)$focusSettings->h
                     );
-                    $options['cropExtra'] = $cropExtra;
+                    $argumentOptions['cropExtra'] = $cropExtra;
                     // use default (center) cropping on the remaining image:
-                    unset($options['cropping']);
+                    unset($argumentOptions['cropping']);
                     break;
                 case 'outside':
                     if (($targetWidth / $targetHeight) > ($focusSettings->w / $focusSettings->h)) {
@@ -104,12 +136,12 @@ class FieldtypeImageFocusrect extends FieldtypeImage
                             'h' => (int)$originalHeight
                         );
                     }
-                    $options['cropExtra'] = $cropExtra;
-                    $options['cropping'] = $cropping;
+                    $argumentOptions['cropExtra'] = $cropExtra;
+                    $argumentOptions['cropping'] = $cropping;
                     break;
             }
 
-            $event->arguments('options', $options);
+            $event->arguments('options', $argumentOptions);
         }
     }
 
