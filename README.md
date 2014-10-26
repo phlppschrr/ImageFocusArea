@@ -1,4 +1,4 @@
-Inputfield And Fieldtype ImageFocusrect
+Inputfield And Fieldtype ImageFocusArea
 =======================================
 
 for ProcessWire 2.5
@@ -9,7 +9,7 @@ Makes it possible to select the important part of the image
 Usage
 -----
 
-Create a new Inputfield ImageFocusrect and add it to the desired template. 
+Create a new Inputfield ImageFocusArea and add it to the desired template. 
 Edit a page with this template and add an image to the new field. You will see a link "Add Image Focusarea". 
 Click the link and you will see a popup with a cropping tool similar to the Thumbnails module. Select the important part of the image, click "apply" and save the page.
 

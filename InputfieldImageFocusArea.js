@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    $('.InputfieldImageFocusrect').on('click', '.button-setfocus', function (event) {
+    $('.InputfieldImageFocusArea').on('click', '.button-setfocus', function (event) {
 
         event.preventDefault();
 

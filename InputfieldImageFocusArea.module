@@ -1,7 +1,7 @@
 <?php
 
 /**
- * InputfieldImageFocusrect for ProcessWire
+ * InputfieldImageFocusArea for ProcessWire
  *
  * Extends InputfieldImage with the option to choose the important part of the image
  *
@@ -17,19 +17,19 @@
  *
  */
 
-class InputfieldImageFocusrect extends InputfieldImage
+class InputfieldImageFocusArea extends InputfieldImage
 {
 
     public static function getModuleInfo()
     {
         return array(
 
-            'title' => __('Images Focusrect Inputfield', __FILE__),
+            'title' => __('Images FocusArea Inputfield', __FILE__),
             'summary' => __('Extends InputfieldImage with the option to choose the important part of the image', __FILE__),
             'version' => '0.2.0',
             'author' => "Philipp Schreier (interrobang)",
-            'requires' => array('ProcessWire>=2.5.0', 'FieldtypeImageFocusrect'),
-            'installs' => array('FieldtypeImageFocusrect'),
+            'requires' => array('ProcessWire>=2.5.0', 'FieldtypeImageFocusArea'),
+            'installs' => array('FieldtypeImageFocusArea'),
         );
     }
 
@@ -40,8 +40,8 @@ class InputfieldImageFocusrect extends InputfieldImage
 
     public function ___render()
     {
-        $this->config->scripts->add($this->config->urls->InputfieldImageFocusrect . "Jcrop/js/jquery.Jcrop.min.js");
-        $this->config->styles->add($this->config->urls->InputfieldImageFocusrect . "Jcrop/css/jquery.Jcrop.min.css");
+        $this->config->scripts->add($this->config->urls->InputfieldImageFocusArea . "Jcrop/js/jquery.Jcrop.min.js");
+        $this->config->styles->add($this->config->urls->InputfieldImageFocusArea . "Jcrop/css/jquery.Jcrop.min.css");
         return parent::___render();
     }
 
@@ -51,7 +51,7 @@ class InputfieldImageFocusrect extends InputfieldImage
         $for = $name . "_" . $id;
         $value = $this->sanitizer->entities($pagefile->$name);
 
-        $process_id = $this->modules->getModuleID('ProcessImageFocusrect');
+        $process_id = $this->modules->getModuleID('ProcessImageFocusArea');
         $process_url = $this->pages->get("process=$process_id")->url;
 
         $data = "data-inputtarget='$for' ";

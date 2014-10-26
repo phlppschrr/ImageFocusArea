@@ -1,7 +1,7 @@
 <?php
 
 /**
- * FieldtypeImageFocusrect for ProcessWire
+ * FieldtypeImageFocusArea for ProcessWire
  *
  * Extends InputfieldImage with the option to choose the important part of the image
  *
@@ -16,7 +16,7 @@
  * http://www.ryancramer.com
  *
  */
-class FieldtypeImageFocusrect extends FieldtypeImage
+class FieldtypeImageFocusArea extends FieldtypeImage
 {
 
     protected $dbFields = array(); // cache
@@ -24,17 +24,17 @@ class FieldtypeImageFocusrect extends FieldtypeImage
     public static function getModuleInfo()
     {
         return array(
-            'title' => __('Images Focusrect Fieldtype', __FILE__),
+            'title' => __('Images FocusArea Fieldtype', __FILE__),
             'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
             'version' => '0.2.0',
             'author' => "Philipp Schreier (interrobang)",
-            'requires' => array('ProcessWire>=2.5.0', 'InputfieldImageFocusrect')
+            'requires' => array('ProcessWire>=2.5.0', 'InputfieldImageFocusArea')
         );
     }
 
     public function init()
     {
-        $this->defaultInputfieldClass = 'InputfieldImageFocusrect';
+        $this->defaultInputfieldClass = 'InputfieldImageFocusArea';
         $this->addHookBefore('Pageimage::size', $this, 'hookPageimageSize');
         $this->addHookProperty("Pageimage::cssBackgroundPosition", $this, "cssBackgroundPosition");
     }
@@ -253,7 +253,7 @@ class FieldtypeImageFocusrect extends FieldtypeImage
 
 //    public function ___install()
 //    {
-//        $this->modules->get("InputfieldImageFocusrect");
+//        $this->modules->get("InputfieldImageFocusArea");
 //    }
 }
 
