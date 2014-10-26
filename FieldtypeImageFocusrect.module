@@ -1,0 +1,175 @@
+<?php
+
+/**
+ * FieldtypeImageFocusrect for ProcessWire
+ *
+ * Extends InputfieldImage with the option to choose the important part of the image
+ *
+ * Copyright 2014 by Philipp Schreier
+ * @author Philipp Schreier @phlppschrr <git@rgb10.de>
+ *
+ * ProcessWire 2.x
+ * Copyright (C) 2011 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ */
+class FieldtypeImageFocusrect extends FieldtypeImage
+{
+
+    protected $dbFields = array(); // cache
+
+    public static function getModuleInfo()
+    {
+        return array(
+            'title' => __('Images Focusrect Fieldtype', __FILE__),
+            'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
+            'version' => '0.2.0',
+            'author' => "Philipp Schreier (interrobang)",
+            'requires' => array('ProcessWire>=2.5.0', 'InputfieldImageFocusrect')
+        );
+    }
+
+    public function init()
+    {
+        $this->defaultInputfieldClass = 'InputfieldImageFocusrect';
+        $this->addHookBefore('Pageimage::size', $this, 'hookPageimageSize');
+    }
+
+
+    public function hookPageimageSize(HookEvent $event)
+    {
+        $pageImage = $event->object;
+
+        if ($pageImage->focus) {
+            $options = $event->arguments('options');
+
+            if (!isset($options['cropping']) || $options['cropping']=='') {
+                $focusMode = 'align';
+            } elseif (in_array($options['cropping'], array('align', 'inside', 'outside'), true)) {
+                $focusMode = $options['cropping'];
+            } else {
+                return;
+            }
+
+            $targetWidth = $event->arguments('width');
+            $targetHeight = $event->arguments('height');
+            $originalWidth = $pageImage->width();
+            $originalHeight = $pageImage->height();
+            $focusSettings = json_decode($pageImage->focus);
+
+            $cropping = array();
+            $cropping[0] = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
+            $cropping[1] = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
+
+            switch ($focusMode) {
+                case 'align':
+                    // use center of croppingBox for alignment
+                    $options['cropping'] = $cropping;
+                    break;
+                case 'inside':
+                    $cropExtra = array(
+                        'x' => (int)$focusSettings->x,
+                        'y' => (int)$focusSettings->y,
+                        'w' => (int)$focusSettings->w,
+                        'h' => (int)$focusSettings->h
+                    );
+                    $options['cropExtra'] = $cropExtra;
+                    // use default (center) cropping on the remaining image:
+                    unset($options['cropping']);
+                    break;
+                case 'outside':
+                    if (($targetWidth / $targetHeight) > ($focusSettings->w / $focusSettings->h)) {
+                        $cropExtra = array(
+                            'x' => 0,
+                            'y' => (int)$focusSettings->y,
+                            'w' => (int)$originalWidth,
+                            'h' => (int)$focusSettings->h
+                        );
+                    } else {
+                        $cropExtra = array(
+                            'x' => (int)$focusSettings->x,
+                            'y' => 0,
+                            'w' => (int)$focusSettings->w,
+                            'h' => (int)$originalHeight
+                        );
+                    }
+                    $options['cropExtra'] = $cropExtra;
+                    $options['cropping'] = $cropping;
+                    break;
+            }
+
+            $event->arguments('options', $options);
+        }
+    }
+
+    /**
+     * Return the DB schema used by this field's table
+     *
+     */
+    public function getDatabaseSchema(Field $field)
+    {
+        $schema = parent::getDatabaseSchema($field);
+        $schema['focus'] = 'varchar(255) NOT NULL';
+        $schema['keys']['focus'] = 'FULLTEXT KEY focus (focus)';
+        return $schema;
+    }
+
+
+    /**
+     * Given a raw value (value as stored in DB), return the value as it would appear in a Page object
+     *
+     * @param Page $page
+     * @param Field $field
+     * @param string|int|array $value
+     * @return string|int|array|object $value
+     *
+     */
+    public function ___wakeupValue(Page $page, Field $field, $value)
+    {
+
+        $pagefiles = parent::___wakeupValue($page, $field, $value);
+
+        foreach ($pagefiles as $pagefile) {
+            foreach ($value as $v) {
+                if ($v['data'] != $pagefile->basename) continue;
+                $pagefile->set('focus', $v['focus']);
+            }
+        }
+
+        $pagefiles->resetTrackChanges(true);
+
+        return $pagefiles;
+    }
+
+    /**
+     * Given an 'awake' value, as set by wakeupValue, convert the value back to a basic type for storage in DB.
+     *
+     * @param Page $page
+     * @param Field $field
+     * @param string|int|array|object $value
+     * @return string|int
+     *
+     */
+    public function ___sleepValue(Page $page, Field $field, $value)
+    {
+        $sleepValue = parent::___sleepValue($page, $field, $value);
+        if (!$value instanceof Pagefiles) return $sleepValue;
+
+        $key = 0;
+        foreach ($value as $item) {
+            $sleepValue[$key]['focus'] = $value[$sleepValue[$key]['data']]->focus;
+            $key++;
+        }
+        return $sleepValue;
+    }
+
+
+//    public function ___install()
+//    {
+//        $this->modules->get("InputfieldImageFocusrect");
+//    }
+}
+

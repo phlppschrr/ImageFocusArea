@@ -1,0 +1,94 @@
+<?php
+
+/**
+ * InputfieldImageFocusrect for ProcessWire
+ *
+ * Extends InputfieldImage with the option to choose the important part of the image
+ *
+ * Copyright 2014 by Philipp Schreier
+ * @author Philipp Schreier @phlppschrr <git@rgb10.de>
+ *
+ * ProcessWire 2.x
+ * Copyright (C) 2011 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ */
+
+class InputfieldImageFocusrect extends InputfieldImage
+{
+
+    public static function getModuleInfo()
+    {
+        return array(
+
+            'title' => __('Images Focusrect Inputfield', __FILE__),
+            'summary' => __('Extends InputfieldImage with the option to choose the important part of the image', __FILE__),
+            'version' => '0.2.0',
+            'author' => "Philipp Schreier (interrobang)",
+            'requires' => array('ProcessWire>=2.5.0', 'FieldtypeImageFocusrect'),
+            'installs' => array('FieldtypeImageFocusrect'),
+        );
+    }
+
+    public function init()
+    {
+        parent::init();
+    }
+
+    public function ___render()
+    {
+        $this->config->scripts->add($this->config->urls->InputfieldImageFocusrect . "Jcrop/js/jquery.Jcrop.min.js");
+        $this->config->styles->add($this->config->urls->InputfieldImageFocusrect . "Jcrop/css/jquery.Jcrop.min.css");
+        return parent::___render();
+    }
+
+    protected function renderItemDescriptionField(Pagefile $pagefile, $id, $n)
+    {
+        $name = 'focus';
+        $for = $name . "_" . $id;
+        $value = $this->sanitizer->entities($pagefile->$name);
+
+        $process_id = $this->modules->getModuleID('ProcessImageFocusrect');
+        $process_url = $this->pages->get("process=$process_id")->url;
+
+        $data = "data-inputtarget='$for' ";
+        $href = "$process_url?modal=1&filename=$pagefile->basename&pages_id={$this->input->get->id}&field={$this->name}";
+
+        $buttonLabel = '';
+        if ($pagefile->focus) {
+            $buttonLabel = __('Edit/Remove Image Focusarea');
+        } else {
+            $buttonLabel = __('Add Image Focusarea');
+        }
+
+        $out = parent::renderItemDescriptionField($pagefile, $id, $n);
+        $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
+        $out .= "<a target='_blank' href='$href' class=' button-setfocus' $data ><span class='ui-button-text2'>$buttonLabel</span></a>";
+
+        return $out;
+    }
+
+    protected function ___processInputFile(WireInputData $input, Pagefile $pagefile, $n)
+    {
+        $changed = parent::___processInputFile($input, $pagefile, $n);
+        $id = $this->name . '_' . $pagefile->hash;
+
+        $name = 'focus';
+        $for = $name . "_" . $id;
+        $value = $input->$for;
+
+        $value = $this->sanitizer->text($value);
+
+        if ($pagefile->$name != $value) {
+            $pagefile->set($name, $value);
+            $changed = true;
+		}
+
+        return $changed;
+    }
+
+}
+
