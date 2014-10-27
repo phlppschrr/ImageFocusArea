@@ -98,13 +98,13 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             $cropping[0] = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
             $cropping[1] = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
 
-            if ($focusMode == 'outside'
-                && isset($mergedOptions['upscaling']) && $mergedOptions['upscaling'] == false
-                && (($targetWidth > $focusSettings->w) || ($targetHeight > $focusSettings->h))
-            ) {
-                // When upscaling=false and focusMode=outside, but the target size is larger then the focusArea switch to 'align' mode
-                $focusMode = 'align';
-            };
+//            if ($focusMode == 'outside'
+//                && $mergedOptions['upscaling'] == false
+//                && (($targetWidth > $focusSettings->w) || ($targetHeight > $focusSettings->h))
+//            ) {
+//                // When upscaling=false and focusMode=outside, but the target size is larger then the focusArea switch to 'align' mode
+////                $focusMode = 'align';
+//            };
 
             switch ($focusMode) {
                 case 'align':
@@ -130,6 +130,30 @@ class FieldtypeImageFocusArea extends FieldtypeImage
                             'w' => (int)$originalWidth,
                             'h' => (int)$focusSettings->h
                         );
+                        // should we do this only if upscaling=false?
+                        if ($targetHeight > $focusSettings->h) {
+                            $halfMissingHeight = ($targetHeight - $focusSettings->h) / 2;
+
+                            if ($targetHeight>= $originalHeight){
+                                // expand height to maximum
+                                $cropExtra['y'] = 0;
+                                $cropExtra['h'] = (int)$originalHeight;
+                            } elseif ( $focusSettings->y - $halfMissingHeight >= 0 &&
+                                 $focusSettings->y2 + $halfMissingHeight < $originalHeight) {
+                                // we can expand the focusArea in both directions
+                                $cropExtra['y'] = (int)($focusSettings->y - $halfMissingHeight);
+                                $cropExtra['h'] = (int)$targetHeight;
+                            } else {
+                                // the focusArea can't be expanded equally to both directions
+                                $cropExtra['h'] = $targetHeight;
+                                if ($focusSettings->y - $halfMissingHeight<0) {
+                                    $cropExtra['y'] = 0;
+                                } else {
+                                    $cropExtra['y'] = (int)($originalHeight - $targetHeight);
+                                }
+
+                            }
+                        }
                     } else {
                         $cropExtra = array(
                             'x' => (int)$focusSettings->x,
@@ -137,6 +161,30 @@ class FieldtypeImageFocusArea extends FieldtypeImage
                             'w' => (int)$focusSettings->w,
                             'h' => (int)$originalHeight
                         );
+                        // should we do this only if upscaling=false?
+                        if ($targetWidth > $focusSettings->w) {
+                            $halfMissingWidth = ($targetWidth - $focusSettings->w) / 2;
+
+                            if ($targetWidth>= $originalWidth){
+                                // expand height to maximum
+                                $cropExtra['x'] = 0;
+                                $cropExtra['w'] = (int)$originalWidth;
+                            } elseif ( $focusSettings->x - $halfMissingWidth >= 0 &&
+                                    $focusSettings->x2 + $halfMissingWidth < $originalWidth) {
+                                // we can expand the focusArea in both directions
+                                $cropExtra['x'] = (int)($focusSettings->x - $halfMissingWidth);
+                                $cropExtra['w'] = (int)$targetWidth;
+                            } else {
+                                // the focusArea can't be expanded equally to both directions
+                                $cropExtra['w'] = $targetWidth;
+                                if ($focusSettings->x - $halfMissingWidth<0) {
+                                    $cropExtra['x'] = 0;
+                                } else {
+                                    $cropExtra['x'] = (int)($originalWidth - $targetWidth);
+                                }
+
+                            }
+                        }
                     }
                     $argumentOptions['cropExtra'] = $cropExtra;
                     $argumentOptions['cropping'] = $cropping;
