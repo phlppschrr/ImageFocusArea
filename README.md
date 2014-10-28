@@ -31,6 +31,9 @@ echo "<img src='{$page->image->size(200,200, array('cropping'=>'align'))}' />";
 
 // the resulting image will be the center area of the selected focusarea 
 echo "<img src='{$page->image->size(200,200, array('cropping'=>'inside'))}' />";
+// to get an image with exactly the same ratio as the focusarea use width()/height() instead of a size() 
+echo "<img src='{$page->image->width(200, array('cropping'=>'inside'))}' />";
+echo "<img src='{$page->image->height(200, array('cropping'=>'inside'))}' />";
 
 // the whole selected area will be part of the image, the surrounding imagearea will only be used to reach the targetsize 
 echo "<img src='{$page->image->size(200,200, array('cropping'=>'outside'))}' />";
