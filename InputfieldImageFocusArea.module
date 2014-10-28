@@ -25,12 +25,12 @@ class InputfieldImageFocusArea extends InputfieldImage
         return array(
 
             'title' => __('Images FocusArea Inputfield', __FILE__),
-            'summary' => __('Extends InputfieldImage with the option to choose the important part of the image', __FILE__),
+	    'summary' => __('Extends InputfieldImage with the option to choose a focusarea in the image', __FILE__),
             'version' => '0.2.0',
             'author' => "Philipp Schreier (interrobang)",
             'requires' => array('ProcessWire>=2.5.6', 'FieldtypeImageFocusArea'),
             'installs' => array('FieldtypeImageFocusArea'),
-            'icon' => 'image'
+	    'icon' => 'crosshairs'
         );
     }
 
