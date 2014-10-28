@@ -35,8 +35,9 @@ echo "<img src='{$page->image->size(200,200, array('cropping'=>'inside'))}' />";
 // the whole selected area will be part of the image, the surrounding imagearea will only be used to reach the targetsize 
 echo "<img src='{$page->image->size(200,200, array('cropping'=>'outside'))}' />";
 ```
-
-additionally you can access a new property ```cssBackgroundPosition```, which could be useful for frontend responsive images. The visual result is similar to the ```cropping='align'``` mode, but depending on the size and postion of the focusArea and your images source and target size your mileage may vary. This property is intended to be used together with ```background-size: cover;```. It is important that the background-image has the same ratio as the original image!
+Flexible CSS Background Images
+------------------------------
+Additionally you can access a new property ```cssBackgroundPosition```, which could be useful for frontend responsive images. The visual result is similar to the ```cropping='align'``` mode, but depending on the size and postion of the focusArea and your images source and target size your mileage may vary. This property is intended to be used together with ```background-size: cover;```. It is important that the background-image has the same ratio as the original image!
 
 ```HTML
 <style>
