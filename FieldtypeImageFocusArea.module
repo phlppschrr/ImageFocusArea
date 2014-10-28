@@ -6,6 +6,7 @@
  * Extends InputfieldImage with the option to choose the important part of the image
  *
  * Copyright 2014 by Philipp Schreier
+ *
  * @author Philipp Schreier @phlppschrr <git@rgb10.de>
  *
  * ProcessWire 2.x
@@ -24,12 +25,12 @@ class FieldtypeImageFocusArea extends FieldtypeImage
     public static function getModuleInfo()
     {
         return array(
-            'title' => __('Images FocusArea Fieldtype', __FILE__),
-            'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
-	    'version' => '0.3.0',
-            'author' => "Philipp Schreier (interrobang)",
-            'requires' => array('ProcessWire>=2.5.6', 'InputfieldImageFocusArea'),
-            'icon' => 'image'
+		'title' => __('Images FocusArea Fieldtype', __FILE__),
+		'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
+		'version' => '0.3.1',
+		'author' => "Philipp Schreier (interrobang)",
+		'requires' => array('ProcessWire>=2.5.6', 'InputfieldImageFocusArea'),
+		'icon' => 'image'
         );
     }
 
@@ -48,32 +49,42 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         if ($pageImage->focus) {
             $argumentOptions = $event->arguments('options');
             $configOptions = wire('config')->imageSizerOptions;
-            if(!is_array($configOptions)) $configOptions = array();
+	    if (!is_array($configOptions)) {
+		$configOptions = array();
+	    }
 
-            if(!is_array($argumentOptions)) {
-                if(is_string($argumentOptions)) {
+	    if (!is_array($argumentOptions)) {
+		if (is_string($argumentOptions)) {
                     // optionally allow a string to be specified with crop direction, for shorter syntax
-                    if(strpos($argumentOptions, ',') !== false) $argumentOptions = explode(',', $argumentOptions); // 30,40
+		    if (strpos($argumentOptions, ',') !== false) {
+			$argumentOptions = explode(',', $argumentOptions);
+		    } // 30,40
                     $argumentOptions = array('cropping' => $argumentOptions);
-                } else if(is_int($argumentOptions)) {
-                    // optionally allow an integer to be specified with quality, for shorter syntax
-                    $argumentOptions = array('quality' => $argumentOptions);
-                } else if(is_bool($argumentOptions)) {
-                    // optionally allow a boolean to be specified with upscaling toggle on/off
-                    $argumentOptions = array('upscaling' => $argumentOptions);
+		} else {
+		    if (is_int($argumentOptions)) {
+			// optionally allow an integer to be specified with quality, for shorter syntax
+			$argumentOptions = array('quality' => $argumentOptions);
+		    } else {
+			if (is_bool($argumentOptions)) {
+			    // optionally allow a boolean to be specified with upscaling toggle on/off
+			    $argumentOptions = array('upscaling' => $argumentOptions);
+			}
+		    }
                 }
             }
 
             $defaultOptions = array(
-                'upscaling' => true,
-                'cropping' => true,
-                'quality' => 90,
-                'suffix' => array(), // can be array of suffixes or string of 1 suffix
-                'forceNew' => false,  // force it to create new image even if already exists
+		    'upscaling' => true,
+		    'cropping' => true,
+		    'quality' => 90,
+		    'suffix' => array(), // can be array of suffixes or string of 1 suffix
+		    'forceNew' => false,  // force it to create new image even if already exists
             );
 
             $configOptions = wire('config')->imageSizerOptions;
-            if(!is_array($configOptions)) $configOptions = array();
+	    if (!is_array($configOptions)) {
+		$configOptions = array();
+	    }
             $mergedOptions = array_merge($defaultOptions, $configOptions, $argumentOptions);
 
 
@@ -98,92 +109,93 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             $cropping[0] = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
             $cropping[1] = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
 
-//            if ($focusMode == 'outside'
-//                && $mergedOptions['upscaling'] == false
-//                && (($targetWidth > $focusSettings->w) || ($targetHeight > $focusSettings->h))
-//            ) {
-//                // When upscaling=false and focusMode=outside, but the target size is larger then the focusArea switch to 'align' mode
-////                $focusMode = 'align';
-//            };
 
             switch ($focusMode) {
                 case 'align':
                     // use center of croppingBox for alignment
                     $argumentOptions['cropping'] = $cropping;
                     break;
+
                 case 'inside':
                     $cropExtra = array(
-                        'x' => (int)$focusSettings->x,
-                        'y' => (int)$focusSettings->y,
-                        'w' => (int)$focusSettings->w,
-                        'h' => (int)$focusSettings->h
+			    'x' => (int) $focusSettings->x,
+			    'y' => (int) $focusSettings->y,
+			    'w' => (int) $focusSettings->w,
+			    'h' => (int) $focusSettings->h
                     );
                     $argumentOptions['cropExtra'] = $cropExtra;
                     // use default (center) cropping on the remaining image:
                     unset($argumentOptions['cropping']);
                     break;
+
                 case 'outside':
-		    if ($targetHeight==0){
-			$targetHeight = (int)(($focusSettings->w / $focusSettings->h)* $targetWidth);
+
+		    if ($targetHeight == 0) {
+			$targetHeight = ($focusSettings->w / $targetWidth) * $focusSettings->h;
 		    }
+
                     if (($targetWidth / $targetHeight) > ($focusSettings->w / $focusSettings->h)) {
+
                         $cropExtra = array(
-                            'x' => 0,
-                            'y' => (int)$focusSettings->y,
-                            'w' => (int)$originalWidth,
-                            'h' => (int)$focusSettings->h
+				'x' => 0,
+				'y' => (int) $focusSettings->y,
+				'w' => (int) $originalWidth,
+				'h' => (int) $focusSettings->h
                         );
+
                         // should we do this only if upscaling=false?
                         if ($targetHeight > $focusSettings->h) {
                             $halfMissingHeight = ($targetHeight - $focusSettings->h) / 2;
 
-                            if ($targetHeight>= $originalHeight){
+			    if ($targetHeight >= $originalHeight) {
                                 // expand height to maximum
                                 $cropExtra['y'] = 0;
-                                $cropExtra['h'] = (int)$originalHeight;
-                            } elseif ( $focusSettings->y - $halfMissingHeight >= 0 &&
-                                 $focusSettings->y2 + $halfMissingHeight < $originalHeight) {
+				$cropExtra['h'] = (int) $originalHeight;
+			    } elseif ($focusSettings->y - $halfMissingHeight >= 0 &&
+				    $focusSettings->y2 + $halfMissingHeight < $originalHeight
+			    ) {
                                 // we can expand the focusArea in both directions
-                                $cropExtra['y'] = (int)($focusSettings->y - $halfMissingHeight);
-                                $cropExtra['h'] = (int)$targetHeight;
+				$cropExtra['y'] = (int) ($focusSettings->y - $halfMissingHeight);
+				$cropExtra['h'] = (int) $targetHeight;
                             } else {
                                 // the focusArea can't be expanded equally to both directions
                                 $cropExtra['h'] = $targetHeight;
-                                if ($focusSettings->y - $halfMissingHeight<0) {
+				if ($focusSettings->y - $halfMissingHeight < 0) {
                                     $cropExtra['y'] = 0;
                                 } else {
-                                    $cropExtra['y'] = (int)($originalHeight - $targetHeight);
+				    $cropExtra['y'] = (int) ($originalHeight - $targetHeight);
                                 }
 
                             }
                         }
                     } else {
                         $cropExtra = array(
-                            'x' => (int)$focusSettings->x,
-                            'y' => 0,
-                            'w' => (int)$focusSettings->w,
-                            'h' => (int)$originalHeight
+				'x' => (int) $focusSettings->x,
+				'y' => 0,
+				'w' => (int) $focusSettings->w,
+				'h' => (int) $originalHeight
                         );
                         // should we do this only if upscaling=false?
                         if ($targetWidth > $focusSettings->w) {
                             $halfMissingWidth = ($targetWidth - $focusSettings->w) / 2;
 
-                            if ($targetWidth>= $originalWidth){
+			    if ($targetWidth >= $originalWidth) {
                                 // expand height to maximum
                                 $cropExtra['x'] = 0;
-                                $cropExtra['w'] = (int)$originalWidth;
-                            } elseif ( $focusSettings->x - $halfMissingWidth >= 0 &&
-                                    $focusSettings->x2 + $halfMissingWidth < $originalWidth) {
+				$cropExtra['w'] = (int) $originalWidth;
+			    } elseif ($focusSettings->x - $halfMissingWidth >= 0 &&
+				    $focusSettings->x2 + $halfMissingWidth < $originalWidth
+			    ) {
                                 // we can expand the focusArea in both directions
-                                $cropExtra['x'] = (int)($focusSettings->x - $halfMissingWidth);
-                                $cropExtra['w'] = (int)$targetWidth;
+				$cropExtra['x'] = (int) ($focusSettings->x - $halfMissingWidth);
+				$cropExtra['w'] = (int) $targetWidth;
                             } else {
                                 // the focusArea can't be expanded equally to both directions
                                 $cropExtra['w'] = $targetWidth;
-                                if ($focusSettings->x - $halfMissingWidth<0) {
+				if ($focusSettings->x - $halfMissingWidth < 0) {
                                     $cropExtra['x'] = 0;
                                 } else {
-                                    $cropExtra['x'] = (int)($originalWidth - $targetWidth);
+				    $cropExtra['x'] = (int) ($originalWidth - $targetWidth);
                                 }
 
                             }
@@ -200,23 +212,25 @@ class FieldtypeImageFocusArea extends FieldtypeImage
 
     /**
      * experimental approach to calculate a background-position for using together with background-position:cover
+     *
      * @param HookEvent $event
      */
-    public function cssBackgroundPosition(HookEvent $event){
+    public function cssBackgroundPosition(HookEvent $event)
+    {
         $pageImage = $event->object;
         $pos = '50% 50%';
-        if($pageImage->focus){
+	if ($pageImage->focus) {
             $focusSettings = json_decode($pageImage->focus);
             $originalWidth = $pageImage->width();
             $originalHeight = $pageImage->height();
-            $centerX = $originalWidth/2;
-            $centerY = $originalHeight/2;
+	    $centerX = $originalWidth / 2;
+	    $centerY = $originalHeight / 2;
 
             // horizontal position
-            if($focusSettings->x < $centerX && $focusSettings->x2 <= $centerX){
+	    if ($focusSettings->x < $centerX && $focusSettings->x2 <= $centerX) {
                 // align focusArea left
                 $posX = ($focusSettings->x / $originalWidth) * 100 . '%';
-            } elseif($focusSettings->x < $centerX && $focusSettings->x2 >= $centerX){
+	    } elseif ($focusSettings->x < $centerX && $focusSettings->x2 >= $centerX) {
                 // align focusArea center
                 $posX = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
             } else {
@@ -225,10 +239,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             }
 
             // vertical position
-            if($focusSettings->y < $centerY && $focusSettings->y2 <= $centerY){
+	    if ($focusSettings->y < $centerY && $focusSettings->y2 <= $centerY) {
                 // align focusArea top
                 $posY = ($focusSettings->y / $originalHeight) * 100 . '%';
-            } elseif($focusSettings->y < $centerY && $focusSettings->y2 >= $centerY){
+	    } elseif ($focusSettings->y < $centerY && $focusSettings->y2 >= $centerY) {
                 // align focusArea center
                 $posY = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
             } else {
@@ -260,6 +274,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
      * @param Page $page
      * @param Field $field
      * @param string|int|array $value
+     *
      * @return string|int|array|object $value
      *
      */
@@ -270,7 +285,9 @@ class FieldtypeImageFocusArea extends FieldtypeImage
 
         foreach ($pagefiles as $pagefile) {
             foreach ($value as $v) {
-                if ($v['data'] != $pagefile->basename) continue;
+		if ($v['data'] != $pagefile->basename) {
+		    continue;
+		}
                 $pagefile->set('focus', $v['focus']);
             }
         }
@@ -286,13 +303,16 @@ class FieldtypeImageFocusArea extends FieldtypeImage
      * @param Page $page
      * @param Field $field
      * @param string|int|array|object $value
+     *
      * @return string|int
      *
      */
     public function ___sleepValue(Page $page, Field $field, $value)
     {
         $sleepValue = parent::___sleepValue($page, $field, $value);
-        if (!$value instanceof Pagefiles) return $sleepValue;
+	if (!$value instanceof Pagefiles) {
+	    return $sleepValue;
+	}
 
         $key = 0;
         foreach ($value as $item) {
