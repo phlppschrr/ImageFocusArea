@@ -19,10 +19,21 @@
     background-color: rgba(0,0,0,.5);
     padding: .2em;
     width: 1.5em;
+    display: inline-block;
     /*height: 1.5em;*/
     overflow: hidden;
     margin-left: -1.5em;
     text-align: center;
+    position: absolute;
+    right: 5px;
+    height: 1.5em;
+    line-height: 1;
+}
+.InputfieldImageFocusArea.InputfieldImageGrid .button-setfocus .fa{
+    vertical-align: middle;
+}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileList .InputfieldFileData a.InputfieldFileLink{
+    margin-right: 5px;
 }
 /*.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo{*/
     /*display: block;*/
