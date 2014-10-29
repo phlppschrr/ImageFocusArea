@@ -204,8 +204,16 @@ class FieldtypeImageFocusArea extends FieldtypeImage
                     $argumentOptions['cropping'] = $cropping;
                     break;
             }
+            // Automatically set filename suffix to the same name as the $focusmode/cropping to avoid caching issues as discussed here:
+            // https://processwire.com/talk/topic/8079-imagefocusarea/?p=78439
+            if ($focusMode) {
 
-            $event->arguments('options', $argumentOptions);
+                $suffix = $focusMode;
+                $suffix .= isset($argumentOptions["suffix"]) ? '-' . $argumentOptions["suffix"] : '';    // $options is the options
+                $argumentOptions['suffix'] = $suffix;
+
+                $event->arguments('options', $argumentOptions);
+            }
         }
     }
 
