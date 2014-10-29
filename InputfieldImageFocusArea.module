@@ -67,7 +67,7 @@ class InputfieldImageFocusArea extends InputfieldImage
 
         $out = parent::renderItemDescriptionField($pagefile, $id, $n);
         $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
-        $out .= "<a target='_blank' href='$href' class=' button-setfocus' $data ><span class='ui-button-text2'>$buttonLabel</span></a>";
+        $out .= "<a target='_blank' href='$href' class=' button-setfocus' $data title='$buttonLabel'><i class='fa fa-crosshairs'></i> <span class='ui-button-text'>$buttonLabel</span></a>";
 
         return $out;
     }
