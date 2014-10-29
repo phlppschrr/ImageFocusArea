@@ -24,12 +24,12 @@ class FieldtypeImageFocusArea extends FieldtypeImage
     public static function getModuleInfo()
     {
         return array(
-		'title' => __('Images FocusArea Fieldtype', __FILE__),
-		'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
-		'version' => '0.4.0',
-		'author' => "Philipp Schreier (interrobang)",
-		'requires' => array('ProcessWire>=2.5.6', 'InputfieldImageFocusArea'),
-		'icon' => 'crosshairs'
+                'title' => __('Images FocusArea Fieldtype', __FILE__),
+                'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
+                'version' => '0.4.0',
+                'author' => "Philipp Schreier (interrobang)",
+                'requires' => array('ProcessWire>=2.5.6', 'InputfieldImageFocusArea'),
+                'icon' => 'crosshairs'
         );
     }
 
@@ -37,6 +37,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
     {
         $this->defaultInputfieldClass = 'InputfieldImageFocusArea';
         $this->addHookBefore('Pageimage::size', $this, 'hookPageimageSize');
+        $this->addHook('Pageimage::getNamedCrop', $this, 'getNamedCrop');
         $this->addHookProperty("Pageimage::cssBackgroundPosition", $this, "cssBackgroundPosition");
     }
 
@@ -46,44 +47,55 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         $pageImage = $event->object;
 
         if ($pageImage->focus) {
+
+
             $argumentOptions = $event->arguments('options');
             $configOptions = wire('config')->imageSizerOptions;
-	    if (!is_array($configOptions)) {
-		$configOptions = array();
-	    }
+            if (!is_array($configOptions)) {
+                $configOptions = array();
+            }
 
-	    if (!is_array($argumentOptions)) {
-		if (is_string($argumentOptions)) {
+            if (!is_array($argumentOptions)) {
+                if (is_string($argumentOptions)) {
                     // optionally allow a string to be specified with crop direction, for shorter syntax
-		    if (strpos($argumentOptions, ',') !== false) {
-			$argumentOptions = explode(',', $argumentOptions);
-		    } // 30,40
+                    if (strpos($argumentOptions, ',') !== false) {
+                        $argumentOptions = explode(',', $argumentOptions);
+                    }
                     $argumentOptions = array('cropping' => $argumentOptions);
-		} else {
-		    if (is_int($argumentOptions)) {
-			// optionally allow an integer to be specified with quality, for shorter syntax
-			$argumentOptions = array('quality' => $argumentOptions);
-		    } else {
-			if (is_bool($argumentOptions)) {
-			    // optionally allow a boolean to be specified with upscaling toggle on/off
-			    $argumentOptions = array('upscaling' => $argumentOptions);
-			}
-		    }
+                } else {
+                    if (is_int($argumentOptions)) {
+                        // optionally allow an integer to be specified with quality, for shorter syntax
+                        $argumentOptions = array('quality' => $argumentOptions);
+                    } else {
+                        if (is_bool($argumentOptions)) {
+                            // optionally allow a boolean to be specified with upscaling toggle on/off
+                            $argumentOptions = array('upscaling' => $argumentOptions);
+                        }
+                    }
                 }
             }
 
+            $allFocusSettings = json_decode($pageImage->focus);
+            if (isset($argumentOptions['namedCrop'])) {
+                $focusName = $argumentOptions['namedCrop'];
+            } else {
+                $focusName = 'focus';
+            }
+            $focusSettings = $allFocusSettings->$focusName;
+
+
             $defaultOptions = array(
-		    'upscaling' => true,
-		    'cropping' => true,
-		    'quality' => 90,
-		    'suffix' => array(), // can be array of suffixes or string of 1 suffix
-		    'forceNew' => false,  // force it to create new image even if already exists
+                    'upscaling' => true,
+                    'cropping' => true,
+                    'quality' => 90,
+                    'suffix' => array(), // can be array of suffixes or string of 1 suffix
+                    'forceNew' => false,  // force it to create new image even if already exists
             );
 
             $configOptions = wire('config')->imageSizerOptions;
-	    if (!is_array($configOptions)) {
-		$configOptions = array();
-	    }
+            if (!is_array($configOptions)) {
+                $configOptions = array();
+            }
             $mergedOptions = array_merge($defaultOptions, $configOptions, $argumentOptions);
 
 
@@ -102,7 +114,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             $targetHeight = $event->arguments('height');
             $originalWidth = $pageImage->width();
             $originalHeight = $pageImage->height();
-            $focusSettings = json_decode($pageImage->focus);
+
+
 
             $cropping = array();
             $cropping[0] = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
@@ -117,10 +130,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage
 
                 case 'inside':
                     $cropExtra = array(
-			    'x' => (int) $focusSettings->x,
-			    'y' => (int) $focusSettings->y,
-			    'w' => (int) $focusSettings->w,
-			    'h' => (int) $focusSettings->h
+                            'x' => (int) $focusSettings->x,
+                            'y' => (int) $focusSettings->y,
+                            'w' => (int) $focusSettings->w,
+                            'h' => (int) $focusSettings->h
                     );
                     $argumentOptions['cropExtra'] = $cropExtra;
                     // use default (center) cropping on the remaining image:
@@ -129,72 +142,72 @@ class FieldtypeImageFocusArea extends FieldtypeImage
 
                 case 'outside':
 
-		    if ($targetHeight == 0) {
-			$targetHeight = ($focusSettings->w / $targetWidth) * $focusSettings->h;
-		    }
+                    if ($targetHeight == 0) {
+                        $targetHeight = ($focusSettings->w / $targetWidth) * $focusSettings->h;
+                    }
 
                     if (($targetWidth / $targetHeight) > ($focusSettings->w / $focusSettings->h)) {
 
                         $cropExtra = array(
-				'x' => 0,
-				'y' => (int) $focusSettings->y,
-				'w' => (int) $originalWidth,
-				'h' => (int) $focusSettings->h
+                                'x' => 0,
+                                'y' => (int) $focusSettings->y,
+                                'w' => (int) $originalWidth,
+                                'h' => (int) $focusSettings->h
                         );
 
                         // should we do this only if upscaling=false?
                         if ($targetHeight > $focusSettings->h) {
                             $halfMissingHeight = ($targetHeight - $focusSettings->h) / 2;
 
-			    if ($targetHeight >= $originalHeight) {
+                            if ($targetHeight >= $originalHeight) {
                                 // expand height to maximum
                                 $cropExtra['y'] = 0;
-				$cropExtra['h'] = (int) $originalHeight;
-			    } elseif ($focusSettings->y - $halfMissingHeight >= 0 &&
-				    $focusSettings->y2 + $halfMissingHeight < $originalHeight
-			    ) {
+                                $cropExtra['h'] = (int) $originalHeight;
+                            } elseif ($focusSettings->y - $halfMissingHeight >= 0 &&
+                                    $focusSettings->y2 + $halfMissingHeight < $originalHeight
+                            ) {
                                 // we can expand the focusArea in both directions
-				$cropExtra['y'] = (int) ($focusSettings->y - $halfMissingHeight);
-				$cropExtra['h'] = (int) $targetHeight;
+                                $cropExtra['y'] = (int) ($focusSettings->y - $halfMissingHeight);
+                                $cropExtra['h'] = (int) $targetHeight;
                             } else {
                                 // the focusArea can't be expanded equally to both directions
                                 $cropExtra['h'] = $targetHeight;
-				if ($focusSettings->y - $halfMissingHeight < 0) {
+                                if ($focusSettings->y - $halfMissingHeight < 0) {
                                     $cropExtra['y'] = 0;
                                 } else {
-				    $cropExtra['y'] = (int) ($originalHeight - $targetHeight);
+                                    $cropExtra['y'] = (int) ($originalHeight - $targetHeight);
                                 }
 
                             }
                         }
                     } else {
                         $cropExtra = array(
-				'x' => (int) $focusSettings->x,
-				'y' => 0,
-				'w' => (int) $focusSettings->w,
-				'h' => (int) $originalHeight
+                                'x' => (int) $focusSettings->x,
+                                'y' => 0,
+                                'w' => (int) $focusSettings->w,
+                                'h' => (int) $originalHeight
                         );
                         // should we do this only if upscaling=false?
                         if ($targetWidth > $focusSettings->w) {
                             $halfMissingWidth = ($targetWidth - $focusSettings->w) / 2;
 
-			    if ($targetWidth >= $originalWidth) {
+                            if ($targetWidth >= $originalWidth) {
                                 // expand height to maximum
                                 $cropExtra['x'] = 0;
-				$cropExtra['w'] = (int) $originalWidth;
-			    } elseif ($focusSettings->x - $halfMissingWidth >= 0 &&
-				    $focusSettings->x2 + $halfMissingWidth < $originalWidth
-			    ) {
+                                $cropExtra['w'] = (int) $originalWidth;
+                            } elseif ($focusSettings->x - $halfMissingWidth >= 0 &&
+                                    $focusSettings->x2 + $halfMissingWidth < $originalWidth
+                            ) {
                                 // we can expand the focusArea in both directions
-				$cropExtra['x'] = (int) ($focusSettings->x - $halfMissingWidth);
-				$cropExtra['w'] = (int) $targetWidth;
+                                $cropExtra['x'] = (int) ($focusSettings->x - $halfMissingWidth);
+                                $cropExtra['w'] = (int) $targetWidth;
                             } else {
                                 // the focusArea can't be expanded equally to both directions
                                 $cropExtra['w'] = $targetWidth;
-				if ($focusSettings->x - $halfMissingWidth < 0) {
+                                if ($focusSettings->x - $halfMissingWidth < 0) {
                                     $cropExtra['x'] = 0;
                                 } else {
-				    $cropExtra['x'] = (int) ($originalWidth - $targetWidth);
+                                    $cropExtra['x'] = (int) ($originalWidth - $targetWidth);
                                 }
 
                             }
@@ -226,18 +239,18 @@ class FieldtypeImageFocusArea extends FieldtypeImage
     {
         $pageImage = $event->object;
         $pos = '50% 50%';
-	if ($pageImage->focus) {
+        if ($pageImage->focus) {
             $focusSettings = json_decode($pageImage->focus);
             $originalWidth = $pageImage->width();
             $originalHeight = $pageImage->height();
-	    $centerX = $originalWidth / 2;
-	    $centerY = $originalHeight / 2;
+            $centerX = $originalWidth / 2;
+            $centerY = $originalHeight / 2;
 
             // horizontal position
-	    if ($focusSettings->x < $centerX && $focusSettings->x2 <= $centerX) {
+            if ($focusSettings->x < $centerX && $focusSettings->x2 <= $centerX) {
                 // align focusArea left
                 $posX = ($focusSettings->x / $originalWidth) * 100 . '%';
-	    } elseif ($focusSettings->x < $centerX && $focusSettings->x2 >= $centerX) {
+            } elseif ($focusSettings->x < $centerX && $focusSettings->x2 >= $centerX) {
                 // align focusArea center
                 $posX = ((($focusSettings->x + $focusSettings->x2) / 2) / $originalWidth) * 100 . '%';
             } else {
@@ -246,10 +259,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             }
 
             // vertical position
-	    if ($focusSettings->y < $centerY && $focusSettings->y2 <= $centerY) {
+            if ($focusSettings->y < $centerY && $focusSettings->y2 <= $centerY) {
                 // align focusArea top
                 $posY = ($focusSettings->y / $originalHeight) * 100 . '%';
-	    } elseif ($focusSettings->y < $centerY && $focusSettings->y2 >= $centerY) {
+            } elseif ($focusSettings->y < $centerY && $focusSettings->y2 >= $centerY) {
                 // align focusArea center
                 $posY = ((($focusSettings->y + $focusSettings->y2) / 2) / $originalHeight) * 100 . '%';
             } else {
@@ -260,6 +273,115 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             $pos = $posX . ' ' . $posY;
         }
         $event->return = $pos;
+    }
+
+    // copied from FieldtypeCropimage
+    public function getNamedCrop(HookEvent $event)
+    {
+        $pageImage = $event->object;
+        $thumbFound = false;
+        $cropName = $event->arguments[0];
+
+        // return InputfieldCropImage or null if not found
+        /** @var InputfieldImageFocusArea $inputFieldInstance */
+        $inputFieldInstance = $this->_getInputFieldInstance($event);
+
+        //TODO Wieso return true?
+        if (!$inputFieldInstance) {
+            return true;
+        }
+
+        // read crop settings from InputfieldCropImage
+        $crops = $inputFieldInstance->cropSettings;
+
+        // and we continue...
+//        throw new WireException(sprintf($this->_("crops: " . $inputFieldInstance)));
+        $crops_a = explode("\n", $crops); // ie. thumbname,200,200 (name,width,height)
+
+        foreach ($crops_a as $crop) {
+            $crop = explode(",", $crop);
+            if ($crop[0] == $cropName) {
+                $cropSettingWidth = (int) $crop[1];
+                $cropSettingHeight = (int) $crop[2];
+                $thumbFound = true;
+                break;
+            }
+        }
+
+        if ($thumbFound === false) {
+            throw new WireException(sprintf($this->_("There is no thumb called: %s"), $cropName));
+            return;
+        }
+
+        if ($cropSettingWidth < 1 && $cropSettingHeight < 1) {
+            //TODO evtl ein freeform crop anbieten = genauso wie bei standard focusArea
+            throw new WireException(sprintf($this->_("Width and height not found for thumb: %s"), $cropName));
+            return;
+        }
+
+        $width = $cropSettingWidth;
+        $height = $cropSettingHeight;
+        $argumentOptions =  $event->arguments(1);
+        if (is_array($argumentOptions)){
+            if( isset($argumentOptions['width']) && (int) $argumentOptions['width']>0 && isset($argumentOptions['height'])&&(int)$argumentOptions['height']>0){
+                //TODO better error message explaining whats wrong
+                throw new WireException(sprintf($this->_("only width or height allowed for namedCrop"), $cropName));
+            }
+            if( isset($argumentOptions['width']) && (int) $argumentOptions['width']>0){
+                $width = (int) $argumentOptions['width'];
+                $height = (int) ($width * ($cropSettingHeight/$cropSettingWidth));
+            }
+            if( isset($argumentOptions['height']) && (int) $argumentOptions['height']>0 ){
+                $height = (int) $argumentOptions['height'];
+                $width = (int) ($height * ($cropSettingWidth/$cropSettingHeight));
+            }
+        } else {
+            $cropSettingHeight=40;
+        }
+
+       $event->return = $pageImage->size($width,$height, array('cropping'=>'inside', 'namedCrop'=>$cropName));
+    }
+
+// copied from fieldtype cropimage
+    public function _getInputFieldInstance(HookEvent $event)
+    {
+        $field = null; // where we'll keep the field we're looking for
+        $image = $event->object;
+        $page = $image->page;
+        $action = $event->arguments[0];
+
+        // find all fields of type FieldtypeImage that are part of the page we're using
+        // or regular image fields with InputfieldImage inputfield assigned
+        $imageFields = array();
+        foreach ($page->fields as $f) {
+//            if ($f->type instanceof FieldtypeImageFocusArea || ($f->inputfieldClass && $f->inputfieldClass == 'InputfieldCropImage')) {
+            if ($f->type instanceof FieldtypeImageFocusArea) {
+                $imageFields[] = $f;
+            }
+        }
+
+        // loop through to find the one we're looking for
+        foreach ($imageFields as $imageField) {
+
+            // good to get unformatted in case it's a single image field,
+            // because it'll still be an array rather than 1 image
+            $pagefiles = $page->getUnformatted($imageField->name);
+
+
+            // if the image's pagefiles property matches the one with the
+            // field we're looking at, we have a match. save in $field
+            if ($image->pagefiles === $pagefiles) {
+                $field = $imageField->getInputfield($page);
+                break;
+            }
+        }
+
+        if ($field) {
+            //$event->return = $out;
+            return $field;
+        }
+
+        return null;
     }
 
     /**
@@ -292,9 +414,9 @@ class FieldtypeImageFocusArea extends FieldtypeImage
 
         foreach ($pagefiles as $pagefile) {
             foreach ($value as $v) {
-		if ($v['data'] != $pagefile->basename) {
-		    continue;
-		}
+                if ($v['data'] != $pagefile->basename) {
+                    continue;
+                }
                 $pagefile->set('focus', $v['focus']);
             }
         }
@@ -317,9 +439,9 @@ class FieldtypeImageFocusArea extends FieldtypeImage
     public function ___sleepValue(Page $page, Field $field, $value)
     {
         $sleepValue = parent::___sleepValue($page, $field, $value);
-	if (!$value instanceof Pagefiles) {
-	    return $sleepValue;
-	}
+        if (!$value instanceof Pagefiles) {
+            return $sleepValue;
+        }
 
         $key = 0;
         foreach ($value as $item) {

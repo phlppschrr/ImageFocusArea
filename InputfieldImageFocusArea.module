@@ -37,6 +37,7 @@ class InputfieldImageFocusArea extends InputfieldImage
     public function init()
     {
         parent::init();
+        $this->set('cropSettings', 'thumbnail,100,100');
     }
 
     public function ___render()
@@ -48,29 +49,87 @@ class InputfieldImageFocusArea extends InputfieldImage
 
     protected function renderItemDescriptionField(Pagefile $pagefile, $id, $n)
     {
+        $out = parent::renderItemDescriptionField($pagefile, $id, $n);
+
         $name = 'focus';
         $for = $name . "_" . $id;
+        $data_inputtarget = "data-inputtarget='$for' ";
+
+        // =============================================================================
+        // json storage field
+        // =============================================================================
         $value = $this->sanitizer->entities($pagefile->$name);
-
-        $process_id = $this->modules->getModuleID('ProcessImageFocusArea');
-        $process_url = $this->pages->get("process=$process_id")->url;
-
-        $data = "data-inputtarget='$for' ";
-        $href = "$process_url?modal=1&filename=$pagefile->basename&pages_id={$this->input->get->id}&field={$this->name}";
-
-        $buttonLabel = '';
-        if ($pagefile->focus) {
-            $buttonLabel = __('Edit/Remove Image Focusarea');
-        } else {
-            $buttonLabel = __('Add Image Focusarea');
-        }
-
-        $out = parent::renderItemDescriptionField($pagefile, $id, $n);
         $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
-        $out .= "<a target='_blank' href='$href' class=' button-setfocus' $data title='$buttonLabel'><i class='fa fa-crosshairs'></i> <span class='ui-button-text'>$buttonLabel</span></a>";
+
+        // =============================================================================
+        // Focusarea Edit Links
+        // =============================================================================
+        $focusButtonLabel = '';
+        if ($pagefile->focus) {
+            $focusButtonLabel = __('Edit/Remove Image Focusarea');
+        } else {
+            $focusButtonLabel = __('Add Image Focusarea');
+        }
+        $out .= "<a href='#' class='button-setfocus' $data_inputtarget data-key='focus' title='$focusButtonLabel'><i class='fa fa-crosshairs'></i> <span class='ui-button-text'>$focusButtonLabel</span></a>";
+
+
+        // =============================================================================
+        // Crop Edit Links
+        // =============================================================================
+        $rawCropsSettings = $this->cropSettings;
+        if (strlen($rawCropsSettings) > 3) {
+            $page = $this->pages->get((int) $this->input->get->id);
+            if (!$page->id || !$page->editable()) {
+                throw new WirePermissionException();
+            }
+
+            $rawCropSettingsArray = explode("\n", strtolower($rawCropsSettings));
+
+            foreach ($rawCropSettingsArray as $key => $rawCropSetting) {
+                $rawCropSetting = trim($rawCropSetting);
+                $cropItemSettings = explode(',',$rawCropSetting );
+
+                $cropName = $cropItemSettings[0];
+                $focusButtonLabel = $cropName;
+
+                if (count($cropItemSettings) > 3) {
+                    // check if cropItem can be used on current template
+                    $cropItemTemplates = array_slice($cropItemSettings, 3);
+                    if (!in_array($page->template, $cropItemTemplates)) {
+                        continue;
+                    }
+                }
+                $data_ratio='';
+                if((int)$cropItemSettings[1]>0 && (int)$cropItemSettings[2]>0){
+                    $data_ratio = "data-ratio='" . (string)((int)$cropItemSettings[1]/(int)$cropItemSettings[2])  ."'";
+                }
+                $out .= "<a href='#' class='button-setfocus button-setfocus--crop' $data_inputtarget $data_ratio data-key='$cropName' title='$focusButtonLabel'><i class='fa fa-crop'></i>
+ <span class='ui-button-text'>$focusButtonLabel</span></a>";
+            }
+        }
 
         return $out;
     }
+
+
+    public function ___getConfigInputfields() {
+
+        $inputfields = parent::___getConfigInputfields();
+
+
+        $field = $this->modules->get("InputfieldTextarea");
+        $field->attr('name', 'cropSettings');
+        $field->attr('value', (string) $this->cropSettings );
+        $field->label = $this->_("Thumbnail Settings");
+        $field->description = $this->_('Enter all crop dimensions, one on each line in this format: name,width,height. Few examples: "thumbnail,200,200" or "portrait,200,600". Optionally, you can limit the visibility of the thumbnails to the selected template, giving as the last parameter, the name of the template. Example: "thumbnail,200,200,base-page,home"');
+
+        //$fieldset->add($field);
+
+        $inputfields->add($field);
+
+        return $inputfields;
+    }
+
 
     protected function ___processInputFile(WireInputData $input, Pagefile $pagefile, $n)
     {

@@ -9,8 +9,16 @@ $(document).ready(function () {
         var $cancelButton;
         var jcrop;
         var $targetInput = $('#' + $(this).data('inputtarget'));
+        var aspectRatio = $(this).data('ratio');
+        var key = $(this).data('key');
         var $container = $(this).parents('.InputfieldImage');
         var imageUrl = $container.find('a.InputfieldFileLink').attr('href');
+        var saveObj = $targetInput.val();
+        if (saveObj) {
+            saveObj = JSON.parse(saveObj);
+        } else {
+            saveObj = {};
+        }
 
         function initCropping() {
             $('#image-focusrect-modal').css('max-width', '90%');
@@ -19,9 +27,12 @@ $(document).ready(function () {
                 boxHeight: ($(window).height() * .9) - 60
             };
             var savedCoords = $targetInput.val();
-            if (savedCoords) {
-                savedCoords = JSON.parse(savedCoords);
-                jcropSettings.setSelect = [savedCoords.x, savedCoords.y, savedCoords.x2, savedCoords.y2]
+            if (saveObj[key]) {
+                //savedCoords = JSON.parse(savedCoords);
+                jcropSettings.setSelect = [saveObj[key].x, saveObj[key].y, saveObj[key].x2, saveObj[key].y2];
+            }
+            if(aspectRatio){
+                jcropSettings.aspectRatio = aspectRatio;
             }
 
             $('#target').Jcrop(jcropSettings, function () {
@@ -51,13 +62,18 @@ $(document).ready(function () {
                     $cancelButton = $(this.content).find('.image-focuspoint-cancel');
 
                     $saveButton.click(function (e) {
-                        var saveVal = jcrop.tellSelect();
-                        if (saveVal.w === 0 && saveVal.h === 0) {
-                            saveVal = '';
-                        } else {
-                            saveVal = JSON.stringify(saveVal);
+
+
+                        var newSaveCoords = jcrop.tellSelect();
+                        if (newSaveCoords.w === 0 && newSaveCoords.h === 0) {
+                            newSaveCoords = '';
                         }
-                        $targetInput.val(saveVal);
+
+                        saveObj[key] = newSaveCoords;
+
+
+
+                        $targetInput.val(JSON.stringify(saveObj));
                         jcrop.destroy();
                         popup.close();
                     });
@@ -67,7 +83,7 @@ $(document).ready(function () {
                         popup.close();
                     });
 
-                    initCropping()
+                    initCropping();
                 }
             }
         });
