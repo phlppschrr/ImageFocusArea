@@ -11,7 +11,19 @@
     margin-top: 1em;
 }
 
+/**
+ * Grid mode icon fixes
+ *
+ */
 
+.InputfieldImageFocusArea .InputfieldHeader .InputfieldImageListToggle {
+    float: right;
+    padding-right: 1em;
+    position: relative;
+}
+.InputfieldStateCollapsed .InputfieldHeader .InputfieldImageListToggle {
+    display: none;
+}
 
 /* jquery.Jcrop.css v0.9.12 - MIT License */
 /*
