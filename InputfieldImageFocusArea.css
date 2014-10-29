@@ -10,8 +10,45 @@
     margin: .5em;
     margin-top: 1em;
 }
+/* Grid View adjustments */
 
+/*.InputfieldImageGrid .InputfieldFileData {*/
+    /*position: relative;*/
+/*}*/
+.InputfieldImageFocusArea.InputfieldImageGrid .button-setfocus {
+    background-color: rgba(0,0,0,.5);
+    padding: .2em;
+    width: 1.5em;
+    /*height: 1.5em;*/
+    overflow: hidden;
+    margin-left: -1.5em;
+    text-align: center;
+}
+/*.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo{*/
+    /*display: block;*/
+/*}*/
+/*.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo > *{*/
+    /*display: none;*/
+/*}*/
+/*.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo > .InputfieldFileDelete{*/
+    /*display: block;*/
+/*}*/
 
+.InputfieldImageFocusArea.InputfieldImageGrid .button-setfocus .ui-button-text { display: none; }
+
+/**
+ * Grid mode icon fixes
+ *
+ */
+
+.InputfieldImageFocusArea .InputfieldHeader .InputfieldImageListToggle {
+    float: right;
+    padding-right: 1em;
+    position: relative;
+}
+.InputfieldStateCollapsed .InputfieldHeader .InputfieldImageListToggle {
+    display: none;
+}
 
 /* jquery.Jcrop.css v0.9.12 - MIT License */
 /*
