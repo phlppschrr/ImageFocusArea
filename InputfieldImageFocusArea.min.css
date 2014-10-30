@@ -1,0 +1,52 @@
+#image-focusrect-modal{margin:0 auto;text-align:center}
+.jcrop-holder{margin:0 auto}
+#image-focusrect-modal .image-focuspoint-cancel,#image-focusrect-modal .image-focuspoint-save{margin:1em .5em .5em}
+.InputfieldImageFocusArea_links .button-setfocus{margin-right:1em;position:relative}
+.InputfieldImageFocusArea_links .button-setfocus .ui-button-text{padding-left:0}
+.InputfieldImageFocusArea_links .InputfieldImageFocusArea_preview{display:none;position:absolute;bottom:100%;margin-bottom:5px;border:2px solid #fff;overflow:hidden;-moz-box-sizing:content-box;box-sizing:content-box;box-shadow:0 0 4px rgba(0,0,0,.5);pointer-events:none}
+.InputfieldImageFocusArea_links .InputfieldImageFocusArea_preview>img{max-width:none}
+.InputfieldImageFocusArea_links .InputfieldImageFocusArea_marker{border:1px solid rgba(255,255,255,.5);position:absolute;box-shadow:0 0 0 500px rgba(0,0,0,.5)}
+.InputfieldImageFocusArea_links .button-setfocus:hover .InputfieldImageFocusArea_preview{display:block;background-size:contain;background-repeat:no-repeat;z-index:999}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader{display:block;width:auto;height:0;padding:0;position:relative}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader>*{display:none}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader .InputfieldFileStats{display:none;font-size:.8em;position:absolute}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader .InputfieldFileDelete{display:block;position:absolute;right:0;z-index:10}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileItem .InputfieldFileData{overflow:visible!important;display:block!important;height:auto!important;-webkit-transition:opacity 200ms;-moz-transition:opacity 200ms;transition:opacity 200ms}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileItem .InputfieldFileInfo.ui-state-error~.InputfieldFileData{opacity:.33}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileItem .InputfieldFileInfo.ui-state-error~.InputfieldFileData .InputfieldImageFocusArea_links{pointer-events:none}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileLink{float:none!important}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldImageFocusArea_links{position:relative;font-size:.8em;padding-left:5px}
+.InputfieldImageFocusArea.InputfieldImageGrid .button-setfocus{display:block}
+.InputfieldImageFocusArea .InputfieldHeader .InputfieldImageListToggle{float:right;padding-right:1em;position:relative}
+.InputfieldStateCollapsed .InputfieldHeader .InputfieldImageListToggle{display:none}
+/*!
+jquery.Jcrop.css v0.9.12 - MIT License
+*/
+.jcrop-holder{direction:ltr;text-align:left;-ms-touch-action:none}
+.jcrop-hline,.jcrop-vline{background:url(data:image/gif;base64,R0lGODlhCAAIAPABAAAAAKqqqiH/C05FVFNDQVBFMi4wAwEAAAAh+QQJCgABACwAAAAACAAIAEACDYQRqXm3xlyQ8cF4myoAIfkECQoAAQAsAAAAAAgACAAAAg8MDqGYaudeW9ChyOyltQAAIfkECQoAAQAsAAAAAAgACAAAAg9MgGCXm+rQYtC0WGl9oQAAIfkECQoAAQAsAAAAAAgACAAAAg+MgWCRernaYmjCWLF7qAAAIfkECQoAAQAsAAAAAAgACAAAAg2MAwmna81UTAfRWeUsACH5BAkKAAEALAAAAAAIAAgAAAIPRB6gmGrnXlvQocjspbUAACH5BAkKAAEALAAAAAAIAAgAAAIPBIJhl5vq0GLQtFhpfaAAACH5BAUKAAEALAAAAAAIAAgAAAIPhINhkHq52mJowlixe6gAADs=) #fff;font-size:0;position:absolute}
+.jcrop-vline{height:100%;width:1px!important}
+.jcrop-vline.right{right:0}
+.jcrop-hline{height:1px!important;width:100%}
+.jcrop-hline.bottom{bottom:0}
+.jcrop-tracker{height:100%;width:100%;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none}
+.jcrop-handle{background-color:#333;border:1px solid #eee;width:7px;height:7px;font-size:1px}
+.jcrop-handle.ord-n{left:50%;margin-left:-4px;margin-top:-4px;top:0}
+.jcrop-handle.ord-s{bottom:0;left:50%;margin-bottom:-4px;margin-left:-4px}
+.jcrop-handle.ord-e{margin-right:-4px;margin-top:-4px;right:0;top:50%}
+.jcrop-handle.ord-w{left:0;margin-left:-4px;margin-top:-4px;top:50%}
+.jcrop-handle.ord-nw{left:0;margin-left:-4px;margin-top:-4px;top:0}
+.jcrop-handle.ord-ne{margin-right:-4px;margin-top:-4px;right:0;top:0}
+.jcrop-handle.ord-se{bottom:0;margin-bottom:-4px;margin-right:-4px;right:0}
+.jcrop-handle.ord-sw{bottom:0;left:0;margin-bottom:-4px;margin-left:-4px}
+.jcrop-dragbar.ord-n,.jcrop-dragbar.ord-s{height:7px;width:100%}
+.jcrop-dragbar.ord-e,.jcrop-dragbar.ord-w{height:100%;width:7px}
+.jcrop-dragbar.ord-n{margin-top:-4px}
+.jcrop-dragbar.ord-s{bottom:0;margin-bottom:-4px}
+.jcrop-dragbar.ord-e{margin-right:-4px;right:0}
+.jcrop-dragbar.ord-w{margin-left:-4px}
+.jcrop-light .jcrop-hline,.jcrop-light .jcrop-vline{background:#fff;filter:alpha(opacity=70)!important;opacity:.7!important}
+.jcrop-light .jcrop-handle{-moz-border-radius:3px;-webkit-border-radius:3px;background-color:#000;border-color:#fff;border-radius:3px}
+.jcrop-dark .jcrop-hline,.jcrop-dark .jcrop-vline{background:#000;filter:alpha(opacity=70)!important;opacity:.7!important}
+.jcrop-dark .jcrop-handle{-moz-border-radius:3px;-webkit-border-radius:3px;background-color:#fff;border-color:#000;border-radius:3px}
+.solid-line .jcrop-hline,.solid-line .jcrop-vline{background:#fff}
+.jcrop-holder img,img.jcrop-preview{max-width:none}

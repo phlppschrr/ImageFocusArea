@@ -49,8 +49,8 @@ $(document).ready(function () {
             items: {
                 src: ['<div id="image-focusrect-modal">',
                     '<img src="'+ imageUrl +'" id="target" />',
-                    '<button class="ui-button ui-state-default image-focuspoint-save">Apply</button>',
-                    '<button class="ui-button ui-state-default image-focuspoint-cancel">Cancel</button>',
+                    '<button class="ui-button ui-state-default image-focuspoint-save"><span class="ui-button-text">Apply</span></button>',
+                    '<button class="ui-button ui-state-default image-focuspoint-cancel"><span class="ui-button-text">Cancel</span></button>',
                     '</div>'
                 ].join('\n'),
                 type: 'inline'

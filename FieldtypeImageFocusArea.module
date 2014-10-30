@@ -26,7 +26,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         return array(
                 'title' => __('Images FocusArea Fieldtype', __FILE__),
                 'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
-                'version' => '0.4.0',
+                'version' => '0.5.0',
                 'author' => "Philipp Schreier (interrobang)",
                 'requires' => array('ProcessWire>=2.5.6', 'InputfieldImageFocusArea'),
                 'icon' => 'crosshairs'
@@ -82,7 +82,9 @@ class FieldtypeImageFocusArea extends FieldtypeImage
                 $focusName = 'focus';
             }
             $focusSettings = $allFocusSettings->$focusName;
-
+            if (!$focusSettings) {
+                return;
+            }
 
             $defaultOptions = array(
                     'upscaling' => true,
@@ -99,10 +101,13 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             $mergedOptions = array_merge($defaultOptions, $configOptions, $argumentOptions);
 
 
-            if (!isset($argumentOptions['cropping']) || $argumentOptions['cropping'] == '') {
+            if (!isset($argumentOptions['cropping'])) {
                 // TODO: default focusMode 'align', make this configuarable?
                 // No, align or center, the other options interfere with Richtext-Editor imagesizing
                 $focusMode = 'align';
+                return;
+//                $croppingSet = isset($argumentOptions['cropping']) ? 'ja':'nein';
+
             } elseif (in_array($argumentOptions['cropping'], array('align', 'inside', 'outside'), true)) {
                 // a valid cropping option for this field was found
                 $focusMode = $argumentOptions['cropping'];
