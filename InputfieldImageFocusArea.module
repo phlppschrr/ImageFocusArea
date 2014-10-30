@@ -61,6 +61,7 @@ class InputfieldImageFocusArea extends InputfieldImage
         $value = $this->sanitizer->entities($pagefile->$name);
         $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
 
+        $out .= "<div class='InputfieldImageFocusArea_links'>";
         // =============================================================================
         // Focusarea Edit Links
         // =============================================================================
@@ -87,7 +88,7 @@ class InputfieldImageFocusArea extends InputfieldImage
 
             foreach ($rawCropSettingsArray as $key => $rawCropSetting) {
                 $rawCropSetting = trim($rawCropSetting);
-                $cropItemSettings = explode(',',$rawCropSetting );
+                $cropItemSettings = explode(',', $rawCropSetting);
 
                 $cropName = $cropItemSettings[0];
                 $focusButtonLabel = $cropName;
@@ -99,14 +100,16 @@ class InputfieldImageFocusArea extends InputfieldImage
                         continue;
                     }
                 }
-                $data_ratio='';
-                if((int)$cropItemSettings[1]>0 && (int)$cropItemSettings[2]>0){
-                    $data_ratio = "data-ratio='" . (string)((int)$cropItemSettings[1]/(int)$cropItemSettings[2])  ."'";
+                $data_ratio = '';
+                if ((int) $cropItemSettings[1] > 0 && (int) $cropItemSettings[2] > 0) {
+                    $data_ratio = "data-ratio='" . (string) ((int) $cropItemSettings[1] / (int) $cropItemSettings[2]) . "'";
                 }
                 $out .= "<a href='#' class='button-setfocus button-setfocus--crop' $data_inputtarget $data_ratio data-key='$cropName' title='$focusButtonLabel'><i class='fa fa-crop'></i>
  <span class='ui-button-text'>$focusButtonLabel</span></a>";
             }
         }
+        // close .InputfieldImageFocusArea_links
+        $out .= '</div>';
 
         return $out;
     }

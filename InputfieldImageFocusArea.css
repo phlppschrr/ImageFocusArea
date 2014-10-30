@@ -10,6 +10,11 @@
     margin: .5em;
     margin-top: 1em;
 }
+
+
+.InputfieldImageFocusArea_links .button-setfocus{
+    margin-right: 1em;
+}
 /* Grid View adjustments */
 
 /*.InputfieldImageGrid .InputfieldFileData {*/

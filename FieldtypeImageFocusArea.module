@@ -101,12 +101,13 @@ class FieldtypeImageFocusArea extends FieldtypeImage
 
             if (!isset($argumentOptions['cropping']) || $argumentOptions['cropping'] == '') {
                 // TODO: default focusMode 'align', make this configuarable?
+                // No, align or center, the other options interfere with Richtext-Editor imagesizing
                 $focusMode = 'align';
             } elseif (in_array($argumentOptions['cropping'], array('align', 'inside', 'outside'), true)) {
                 // a valid cropping option for this field was found
                 $focusMode = $argumentOptions['cropping'];
             } else {
-                // use the user set cropping option, don't do anything here
+                // use the user set cropping option, nothing to do for us
                 return;
             }
 
@@ -114,7 +115,6 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             $targetHeight = $event->arguments('height');
             $originalWidth = $pageImage->width();
             $originalHeight = $pageImage->height();
-
 
 
             $cropping = array();
@@ -221,7 +221,14 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             // https://processwire.com/talk/topic/8079-imagefocusarea/?p=78439
             if ($focusMode) {
 
-                $suffix = $focusMode;
+//                $suffix = $focusMode;
+//                $suffix .= isset($argumentOptions["suffix"]) ? '-' . $argumentOptions["suffix"] : '';    // $options is the options
+//                $argumentOptions['suffix'] = $suffix;
+
+                array_multisort($argumentOptions);
+                $hash = md5(json_encode($argumentOptions));
+
+                $suffix = substr($hash, 0, 12);;
                 $suffix .= isset($argumentOptions["suffix"]) ? '-' . $argumentOptions["suffix"] : '';    // $options is the options
                 $argumentOptions['suffix'] = $suffix;
 
@@ -240,11 +247,22 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         $pageImage = $event->object;
         $pos = '50% 50%';
         if ($pageImage->focus) {
-            $focusSettings = json_decode($pageImage->focus);
+
             $originalWidth = $pageImage->width();
             $originalHeight = $pageImage->height();
             $centerX = $originalWidth / 2;
             $centerY = $originalHeight / 2;
+            $argumentOptions = $event->arguments(0);
+
+            $allFocusSettings = json_decode($pageImage->focus);
+            if (isset($argumentOptions['namedCrop'])) {
+                $focusName = $argumentOptions['namedCrop'];
+            } else {
+                $focusName = 'focus';
+            }
+            $focusSettings = $allFocusSettings->$focusName;
+//                $event->return = json_encode((array) $focusSettings);
+//                return;
 
             // horizontal position
             if ($focusSettings->x < $centerX && $focusSettings->x2 <= $centerX) {
@@ -295,7 +313,6 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         $crops = $inputFieldInstance->cropSettings;
 
         // and we continue...
-//        throw new WireException(sprintf($this->_("crops: " . $inputFieldInstance)));
         $crops_a = explode("\n", $crops); // ie. thumbname,200,200 (name,width,height)
 
         foreach ($crops_a as $crop) {
@@ -321,28 +338,31 @@ class FieldtypeImageFocusArea extends FieldtypeImage
 
         $width = $cropSettingWidth;
         $height = $cropSettingHeight;
-        $argumentOptions =  $event->arguments(1);
-        if (is_array($argumentOptions)){
-            if( isset($argumentOptions['width']) && (int) $argumentOptions['width']>0 && isset($argumentOptions['height'])&&(int)$argumentOptions['height']>0){
+        $argumentOptions = $event->arguments(1);
+        if (is_array($argumentOptions)) {
+            if (isset($argumentOptions['width']) && (int) $argumentOptions['width'] > 0 && isset($argumentOptions['height']) && (int) $argumentOptions['height'] > 0) {
                 //TODO better error message explaining whats wrong
                 throw new WireException(sprintf($this->_("only width or height allowed for namedCrop"), $cropName));
             }
-            if( isset($argumentOptions['width']) && (int) $argumentOptions['width']>0){
+            if (isset($argumentOptions['width']) && (int) $argumentOptions['width'] > 0) {
                 $width = (int) $argumentOptions['width'];
-                $height = (int) ($width * ($cropSettingHeight/$cropSettingWidth));
+                $height = (int) ($width * ($cropSettingHeight / $cropSettingWidth));
+                unset($argumentOptions['width']);
             }
-            if( isset($argumentOptions['height']) && (int) $argumentOptions['height']>0 ){
+            if (isset($argumentOptions['height']) && (int) $argumentOptions['height'] > 0) {
                 $height = (int) $argumentOptions['height'];
-                $width = (int) ($height * ($cropSettingWidth/$cropSettingHeight));
+                $width = (int) ($height * ($cropSettingWidth / $cropSettingHeight));
+                unset($argumentOptions['height']);
             }
         } else {
-            $cropSettingHeight=40;
+            $cropSettingHeight = 40;
         }
 
-       $event->return = $pageImage->size($width,$height, array('cropping'=>'inside', 'namedCrop'=>$cropName));
+        $mergedOptions = array_merge($argumentOptions, array('cropping' => 'inside', 'namedCrop' => $cropName));
+        $event->return = $pageImage->size($width, $height, $mergedOptions);
     }
 
-// copied from fieldtype cropimage
+    // modified from fieldtype cropimage
     public function _getInputFieldInstance(HookEvent $event)
     {
         $field = null; // where we'll keep the field we're looking for
@@ -354,7 +374,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         // or regular image fields with InputfieldImage inputfield assigned
         $imageFields = array();
         foreach ($page->fields as $f) {
-//            if ($f->type instanceof FieldtypeImageFocusArea || ($f->inputfieldClass && $f->inputfieldClass == 'InputfieldCropImage')) {
+            // TODO: is this legacy code or still needed?
+            // if ($f->type instanceof FieldtypeImageFocusArea || ($f->inputfieldClass && $f->inputfieldClass == 'InputfieldCropImage')) {
             if ($f->type instanceof FieldtypeImageFocusArea) {
                 $imageFields[] = $f;
             }
@@ -377,7 +398,6 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         }
 
         if ($field) {
-            //$event->return = $out;
             return $field;
         }
 
@@ -451,10 +471,5 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         return $sleepValue;
     }
 
-
-//    public function ___install()
-//    {
-//        $this->modules->get("InputfieldImageFocusArea");
-//    }
 }
 
