@@ -87,7 +87,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             $mergedOptions = array_merge($defaultOptions, $configOptions, $argumentOptions);
 
 
-            if (!isset($argumentOptions['cropping']) || $argumentOptions['cropping'] == '') {
+            if (!isset($argumentOptions['cropping']) || $argumentOptions['cropping'] === '') {
                 // TODO: default focusMode 'align', make this configuarable?
                 $focusMode = 'align';
             } elseif (in_array($argumentOptions['cropping'], array('align', 'inside', 'outside'), true)) {
