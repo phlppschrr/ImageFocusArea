@@ -143,8 +143,13 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                 $focusName = 'focus';
             }
             $focusSettings = isset($allFocusSettings->$focusName) ? $allFocusSettings->$focusName : false;
-            if (!$focusSettings) {
-                return;
+
+            if (!$focusSettings && $focusName != 'focus') {
+                // fallback to default "focus" for unconfigured thumbnails
+                $focusSettings = isset($allFocusSettings->focus) ? $allFocusSettings->focus : false;
+                if (!$focusSettings) {
+                    return;
+                }
             }
 
             $defaultOptions = array(
@@ -327,8 +332,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                 $focusName = 'focus';
             }
             $focusSettings = $allFocusSettings->$focusName;
-//                $event->return = json_encode((array) $focusSettings);
-//                return;
+
+
 
             // horizontal position
             if ($focusSettings->x < $centerX && $focusSettings->x2 <= $centerX) {
