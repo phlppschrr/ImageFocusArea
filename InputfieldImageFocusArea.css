@@ -9,6 +9,9 @@
 #image-focusrect-modal .image-focuspoint-cancel {
   margin: .5em;
   margin-top: 1em; }
+#image-focusrect-modal.has-upscale-warning .jcrop-hline, #image-focusrect-modal.has-upscale-warning .jcrop-vline {
+  background: #f00;
+  opacity: .6 !important; }
 
 .InputfieldImageFocusArea_links .button-setfocus {
   margin-right: 1em;

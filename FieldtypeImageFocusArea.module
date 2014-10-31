@@ -16,29 +16,90 @@
  * http://www.processwire.com
  *
  */
-class FieldtypeImageFocusArea extends FieldtypeImage
+class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModule
 {
-
-    protected $dbFields = array(); // cache
 
     public static function getModuleInfo()
     {
         return array(
                 'title' => __('Images FocusArea Fieldtype', __FILE__),
                 'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
-                'version' => '0.5.0',
+                'version' => '0.5.1',
                 'author' => "Philipp Schreier (interrobang)",
-                'requires' => array('ProcessWire>=2.5.6', 'InputfieldImageFocusArea'),
-                'icon' => 'crosshairs'
+                'icon' => 'crosshairs',
+                'singular' => false,
+                'autoload' => false,
         );
     }
 
+    /**
+     * Default configuration for this module
+     *
+     * The point of putting this in it's own function is so that you don't have to specify
+     * these defaults more than once.
+     *
+     * @return array
+     */
+    static public function getDefaultData()
+    {
+        return array(
+                'schema_version' => 1,
+        );
+    }
+
+    /**
+     * Name and latest schema version for database table used by this module
+     *
+     */
+    const SCHEMA_VERSION = 2;
+
+
+    /**
+     * Populate the default config data
+     *
+     * ProcessWire will automatically overwrite it with anything the user has specifically configured.
+     * This is done in construct() rather than init() because ProcessWire populates config data after
+     * construct(), but before init().
+     *
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        foreach (self::getDefaultData() as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+
+
     public function init()
     {
+//        $this->message('current database schema ' . $this->schema_version);
+//        // update database schema (if not the latest one yet)
+//        if ($this->schema_version < self::SCHEMA_VERSION) {
+//            $this->updateDatabaseSchema();
+//        }
+
         $this->defaultInputfieldClass = 'InputfieldImageFocusArea';
+
         $this->addHookBefore('Pageimage::size', $this, 'hookPageimageSize');
         $this->addHook('Pageimage::getNamedCrop', $this, 'getNamedCrop');
         $this->addHookProperty("Pageimage::cssBackgroundPosition", $this, "cssBackgroundPosition");
+    }
+
+
+    public static function getModuleConfigInputfields(array $data)
+    {
+        //TODO add some config options?
+        // this is a container for fields, basically like a fieldset
+        $fields = new InputfieldWrapper();
+
+        // since this is a static function, we can't use $this->modules, so get them from the global wire() function
+        $modules = wire('modules');
+
+        // merge default config settings (custom values overwrite defaults)
+        $defaults = self::getDefaultData();
+        $data = array_merge($defaults, $data);
+        return $fields;
     }
 
 
@@ -81,7 +142,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
             } else {
                 $focusName = 'focus';
             }
-            $focusSettings = $allFocusSettings->$focusName;
+            $focusSettings = isset($allFocusSettings->$focusName) ? $allFocusSettings->$focusName : false;
             if (!$focusSettings) {
                 return;
             }
@@ -233,7 +294,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
                 array_multisort($argumentOptions);
                 $hash = md5(json_encode($argumentOptions));
 
-                $suffix = substr($hash, 0, 12);;
+                $suffix = substr($hash, 0, 8);;
                 $suffix .= isset($argumentOptions["suffix"]) ? '-' . $argumentOptions["suffix"] : '';    // $options is the options
                 $argumentOptions['suffix'] = $suffix;
 
@@ -344,7 +405,11 @@ class FieldtypeImageFocusArea extends FieldtypeImage
         $width = $cropSettingWidth;
         $height = $cropSettingHeight;
         $argumentOptions = $event->arguments(1);
-        if (is_array($argumentOptions)) {
+        if(!is_array($argumentOptions)){
+            $argumentOptions = array();
+        }
+
+//        if (is_array($argumentOptions)) {
             if (isset($argumentOptions['width']) && (int) $argumentOptions['width'] > 0 && isset($argumentOptions['height']) && (int) $argumentOptions['height'] > 0) {
                 //TODO better error message explaining whats wrong
                 throw new WireException(sprintf($this->_("only width or height allowed for namedCrop"), $cropName));
@@ -359,9 +424,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
                 $width = (int) ($height * ($cropSettingWidth / $cropSettingHeight));
                 unset($argumentOptions['height']);
             }
-        } else {
-            $cropSettingHeight = 40;
-        }
+//        }
 
         $mergedOptions = array_merge($argumentOptions, array('cropping' => 'inside', 'namedCrop' => $cropName));
         $event->return = $pageImage->size($width, $height, $mergedOptions);
@@ -415,13 +478,49 @@ class FieldtypeImageFocusArea extends FieldtypeImage
      */
     public function getDatabaseSchema(Field $field)
     {
-        //TODO varchar(255) seems to be to small -> text NOT NULL
         $schema = parent::getDatabaseSchema($field);
-        $schema['focus'] = 'varchar(255) NOT NULL';
+//        $schema['focus'] = 'varchar(255) NOT NULL';
+        $schema['focus'] = 'text NOT NULL';
         $schema['keys']['focus'] = 'FULLTEXT KEY focus (focus)';
         return $schema;
     }
 
+
+    /**
+     * Update database schema
+     *
+     * This method applies incremental updates until latest schema version is
+     * reached, while also keeping schema_version config setting up to date.
+     *
+     */
+    /*
+    private function updateDatabaseSchema()
+    {
+        return;
+//        $table_name = 'field_' . $this->name;
+//        $this->warning('updateDatabaseSchema '. $this->name);
+//        if(!$this->name) return;
+
+        while ($this->schema_version < self::SCHEMA_VERSION) {
+            ++$this->schema_version;
+            switch ($this->schema_version) {
+                case 2:
+                    $sql = "ALTER TABLE " . $table_name . " CHANGE `focus` `focus` TEXT NOT NULL";
+                    break;
+                default:
+                    throw new WireException("Unrecognized database schema version: $this->schema_version");
+            }
+            if ($sql && $this->db->query($sql)) {
+                $configData = $this->modules->getModuleConfigData($this);
+                $configData['schema_version'] = $this->schema_version;
+                $this->modules->saveModuleConfigData($this, $configData);
+                $this->warning('updated database schema to version ' . $this->schema_version);
+            } else {
+                throw new WireException("Couldn't update database schema to version $this->schema_version");
+            }
+        }
+    }
+*/
 
     /**
      * Given a raw value (value as stored in DB), return the value as it would appear in a Page object

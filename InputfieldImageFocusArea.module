@@ -25,7 +25,7 @@ class InputfieldImageFocusArea extends InputfieldImage
 
                 'title' => __('Images FocusArea Inputfield', __FILE__),
                 'summary' => __('Extends InputfieldImage with the option to choose a focusarea in the image', __FILE__),
-                'version' => '0.5.0',
+                'version' => '0.5.1',
                 'author' => "Philipp Schreier (interrobang)",
                 'requires' => array('ProcessWire>=2.5.6', 'FieldtypeImageFocusArea'),
                 'installs' => array('FieldtypeImageFocusArea'),
@@ -33,11 +33,14 @@ class InputfieldImageFocusArea extends InputfieldImage
         );
     }
 
+
+
     public function init()
     {
         parent::init();
-        $this->set('cropSettings', 'thumbnail,100,100');
+        $this->set('cropSettings', '');
     }
+
 
     public function ___render()
     {
@@ -45,6 +48,7 @@ class InputfieldImageFocusArea extends InputfieldImage
         $this->config->styles->add($this->config->urls->InputfieldImageFocusArea . "Jcrop/css/jquery.Jcrop.min.css");
         return parent::___render();
     }
+
 
     protected function renderItemDescriptionField(Pagefile $pageImage, $id, $n)
     {
@@ -60,7 +64,7 @@ class InputfieldImageFocusArea extends InputfieldImage
         // json storage field
         // =============================================================================
         $value = $this->sanitizer->entities($pageImage->$subfieldName);
-        $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
+        $out .= "<textarea style='display:none' name='$for' id='$for'>$value</textarea>";
 
         $allFocusSettings = json_decode($pageImage->$subfieldName);
 //        if (isset($argumentOptions['namedCrop'])) {
@@ -122,7 +126,7 @@ $focusButtonLabel</span></a>";
                     }
                 }
                 $data_ratio = '';
-                if ((int) $cropItemSettings[1] > 0 && (int) $cropItemSettings[2] > 0) {
+                if ((int) $cropItemSettings[1] > 0 ||(int) $cropItemSettings[2] > 0) {
                     $data_ratio = "data-ratiowidth='" . (int) $cropItemSettings[1] . "' data-ratioheight='" . (int) $cropItemSettings[2] . "'";
                 }
                 $focusSettings = false;
@@ -175,7 +179,7 @@ $focusButtonLabel</span></a>";
 
         $field = $this->modules->get("InputfieldTextarea");
         $field->attr('name', 'cropSettings');
-        $field->attr('value', (string) $this->cropSettings);
+        $field->attr('value', $this->sanitizer->textarea($this->cropSettings) );
         $field->label = $this->_("Thumbnail Settings");
         $field->description = $this->_(
                 'Enter all crop dimensions, one on each line in this format: name,width,height. Few examples: "thumbnail,200,200" or "portrait,200,600". Optionally, you can limit the visibility of the thumbnails to the selected template, giving as the last parameter, the name of the template. Example: "thumbnail,200,200,base-page,home"'
@@ -198,7 +202,9 @@ $focusButtonLabel</span></a>";
         $for = $name . "_" . $id;
         $value = $input->$for;
 
-        $value = $this->sanitizer->text($value);
+//        $this->warning('Before: ' . $value);
+        $value = $this->sanitizer->textarea($value);
+//        $this->warning('After: ' . $value);
 
         if ($pagefile->$name != $value) {
             $pagefile->set($name, $value);

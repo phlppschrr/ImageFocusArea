@@ -1,6 +1,7 @@
 #image-focusrect-modal{margin:0 auto;text-align:center}
 .jcrop-holder{margin:0 auto}
 #image-focusrect-modal .image-focuspoint-cancel,#image-focusrect-modal .image-focuspoint-save{margin:1em .5em .5em}
+#image-focusrect-modal.has-upscale-warning .jcrop-hline,#image-focusrect-modal.has-upscale-warning .jcrop-vline{background:red;opacity:.6!important}
 .InputfieldImageFocusArea_links .button-setfocus{margin-right:1em;position:relative}
 .InputfieldImageFocusArea_links .button-setfocus .ui-button-text{padding-left:0}
 .InputfieldImageFocusArea_links .InputfieldImageFocusArea_preview{display:none;position:absolute;bottom:100%;margin-bottom:5px;border:2px solid #fff;overflow:hidden;-moz-box-sizing:content-box;box-sizing:content-box;box-shadow:0 0 4px rgba(0,0,0,.5);pointer-events:none}
