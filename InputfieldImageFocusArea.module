@@ -123,7 +123,7 @@ $focusButtonLabel</span></a>";
                 }
                 $data_ratio = '';
                 if ((int) $cropItemSettings[1] > 0 && (int) $cropItemSettings[2] > 0) {
-                    $data_ratio = "data-ratio='" . (string) ((int) $cropItemSettings[1] / (int) $cropItemSettings[2]) . "'";
+                    $data_ratio = "data-ratiowidth='" . (int) $cropItemSettings[1] . "' data-ratioheight='" . (int) $cropItemSettings[2] . "'";
                 }
                 $focusSettings = false;
                 if (isset($allFocusSettings->$cropName)) {

@@ -415,6 +415,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage
      */
     public function getDatabaseSchema(Field $field)
     {
+        //TODO varchar(255) seems to be to small -> text NOT NULL
         $schema = parent::getDatabaseSchema($field);
         $schema['focus'] = 'varchar(255) NOT NULL';
         $schema['keys']['focus'] = 'FULLTEXT KEY focus (focus)';

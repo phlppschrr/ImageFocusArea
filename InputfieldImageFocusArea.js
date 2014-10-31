@@ -9,7 +9,14 @@ $(document).ready(function () {
         var $cancelButton;
         var jcrop;
         var $targetInput = $('#' + $(this).data('inputtarget'));
-        var aspectRatio = $(this).data('ratio');
+        var ratioWidth = $(this).data('ratiowidth');
+        var ratioHeight = $(this).data('ratioheight');
+        var aspectRatio = false;
+        if(ratioWidth && ratioHeight){
+	        aspectRatio = ratioWidth / ratioHeight;
+        }
+        
+        
         var key = $(this).data('key');
         var $container = $(this).parents('.InputfieldImage');
         var imageUrl = $container.find('a.InputfieldFileLink').attr('href');
@@ -33,6 +40,12 @@ $(document).ready(function () {
             }
             if(aspectRatio){
                 jcropSettings.aspectRatio = aspectRatio;
+                jcropSettings.onChange = function(c){
+                	  // change marker if selection would need upscaling in thumbmode
+                      if(c.w < ratioWidth) {
+                          console.log('Warning: upscaling necessary');
+                      }
+                }
             }
 
             $('#target').Jcrop(jcropSettings, function () {
@@ -63,15 +76,12 @@ $(document).ready(function () {
 
                     $saveButton.click(function (e) {
 
-
                         var newSaveCoords = jcrop.tellSelect();
                         if (newSaveCoords.w === 0 && newSaveCoords.h === 0) {
                             newSaveCoords = '';
                         }
 
                         saveObj[key] = newSaveCoords;
-
-
 
                         $targetInput.val(JSON.stringify(saveObj));
                         jcrop.destroy();
