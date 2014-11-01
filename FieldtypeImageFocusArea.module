@@ -330,6 +330,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         // read crop settings from InputfieldCropImage
         $crops = $inputFieldInstance->cropSettings;
+        //FIXME get cropSettings in context of template
+//        $crops = $pageImage->page->template->fieldgroup->getField('cropSettings', true);
 
         // and we continue...
         $crops_a = explode("\n", $crops); // ie. thumbname,200,200 (name,width,height)
@@ -429,6 +431,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
 
     // modified from fieldtype cropimage
+    /**
+     * @param HookEvent $event
+     * @return Inputfield|null
+     */
     protected function getInputFieldInstance(HookEvent $event)
     {
         $field = null; // where we'll keep the field we're looking for
@@ -463,11 +469,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
             }
         }
 
-        if ($field) {
-            return $field;
-        }
-
-        return null;
+        return $field;
     }
 
     /**

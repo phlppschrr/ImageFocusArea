@@ -64,15 +64,15 @@ class InputfieldImageFocusArea extends InputfieldImage
         $value = $this->sanitizer->entities($pageImage->focus);
         $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
 
-        $allFocusSettings = json_decode($pageImage->focus);
+        $allFocusSettings = json_decode($pageImage->focus, true);
 
         // =============================================================================
         // Focusarea Edit Links
         // =============================================================================
         $focusButtonLabel = '';
         $focusSettings = false;
-        if (isset($allFocusSettings->focus)) {
-            $focusSettings = $allFocusSettings->focus;
+        if (isset($allFocusSettings['focus'])) {
+            $focusSettings = $allFocusSettings['focus'];
         }
 
         $focusButtonLabel = __('Focusarea');
@@ -115,8 +115,8 @@ $focusButtonLabel</span></a>";
                     $data_ratio = "data-ratiowidth='" . (int)$cropItemSettings[1] . "' data-ratioheight='" . (int)$cropItemSettings[2] . "'";
                 }
                 $focusSettings = false;
-                if (isset($allFocusSettings->$cropName)) {
-                    $focusSettings = $allFocusSettings->$cropName;
+                if (isset($allFocusSettings[$cropName])) {
+                    $focusSettings = $allFocusSettings[$cropName];
                 }
                 $out .= "<a href='#' class='button-setfocus button-setfocus--crop' $data_inputtarget $data_ratio data-key='$cropName' title='$focusButtonLabel'>" . $this->getCropPreviewMarkup(
                         $pageImage,
@@ -148,10 +148,10 @@ $focusButtonLabel</span></a>";
         $previewMarkup .= "<img src='{$previewImage->url}' width='$imgWidth' height='$imgHeight' />";
 
         if ($focusSettings) {
-            $left = ($focusSettings->x / $originalWidth) * 100 . '%';
-            $top = ($focusSettings->y / $originalHeight) * 100 . '%';
-            $w = ($focusSettings->w / $originalWidth) * 100 . '%';
-            $h = ($focusSettings->h / $originalHeight) * 100 . '%';
+            $left = ($focusSettings['x'] / $originalWidth) * 100 . '%';
+            $top = ($focusSettings['y'] / $originalHeight) * 100 . '%';
+            $w = ($focusSettings['w'] / $originalWidth) * 100 . '%';
+            $h = ($focusSettings['h'] / $originalHeight) * 100 . '%';
             $focusMarkerMarkup = "<div class='InputfieldImageFocusArea_marker' style='left: $left; top:$top; width: $w; height: $h'></div>";
             $previewMarkup .= $focusMarkerMarkup;
         }
