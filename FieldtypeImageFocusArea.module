@@ -89,12 +89,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
     public static function getModuleConfigInputfields(array $data)
     {
-        //TODO add some config options?
-        // this is a container for fields, basically like a fieldset
         $fields = new InputfieldWrapper();
 
         // since this is a static function, we can't use $this->modules, so get them from the global wire() function
-        $modules = wire('modules');
+//        $modules = wire('modules');
 
         // merge default config settings (custom values overwrite defaults)
         $defaults = self::getDefaultData();
@@ -109,30 +107,24 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         if ($pageImage->focus) {
 
-
             $argumentOptions = $event->arguments('options');
             $configOptions = wire('config')->imageSizerOptions;
             if (!is_array($configOptions)) {
                 $configOptions = array();
             }
 
-            if (!is_array($argumentOptions)) {
-                if (is_string($argumentOptions)) {
+            // Sanitize $argumentOptions argument. Copied from Pageimage::___size
+            if(!is_array($argumentOptions)) {
+                if(is_string($argumentOptions)) {
                     // optionally allow a string to be specified with crop direction, for shorter syntax
-                    if (strpos($argumentOptions, ',') !== false) {
-                        $argumentOptions = explode(',', $argumentOptions);
-                    }
+                    if(strpos($argumentOptions, ',') !== false) $argumentOptions = explode(',', $argumentOptions); // 30,40
                     $argumentOptions = array('cropping' => $argumentOptions);
-                } else {
-                    if (is_int($argumentOptions)) {
-                        // optionally allow an integer to be specified with quality, for shorter syntax
-                        $argumentOptions = array('quality' => $argumentOptions);
-                    } else {
-                        if (is_bool($argumentOptions)) {
-                            // optionally allow a boolean to be specified with upscaling toggle on/off
-                            $argumentOptions = array('upscaling' => $argumentOptions);
-                        }
-                    }
+                } else if(is_int($argumentOptions)) {
+                    // optionally allow an integer to be specified with quality, for shorter syntax
+                    $argumentOptions = array('quality' => $argumentOptions);
+                } else if(is_bool($argumentOptions)) {
+                    // optionally allow a boolean to be specified with upscaling toggle on/off
+                    $argumentOptions = array('upscaling' => $argumentOptions);
                 }
             }
 
@@ -373,9 +365,9 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         // return InputfieldCropImage or null if not found
         /** @var InputfieldImageFocusArea $inputFieldInstance */
-        $inputFieldInstance = $this->_getInputFieldInstance($event);
+        $inputFieldInstance = $this->getInputFieldInstance($event);
 
-        //TODO Wieso return true?
+        //TODO Why return TRUE?
         if (!$inputFieldInstance) {
             return true;
         }
@@ -403,7 +395,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         if ($cropSettingWidth < 1 && $cropSettingHeight < 1) {
             //TODO evtl ein freeform crop anbieten = genauso wie bei standard focusArea
-            throw new WireException(sprintf($this->_("Width and height not found for thumb: %s"), $cropName));
+            throw new WireException(sprintf($this->_("Width AND height not found for thumb: %s"), $cropName));
             return;
         }
 
@@ -414,29 +406,27 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
             $argumentOptions = array();
         }
 
-//        if (is_array($argumentOptions)) {
-            if (isset($argumentOptions['width']) && (int) $argumentOptions['width'] > 0 && isset($argumentOptions['height']) && (int) $argumentOptions['height'] > 0) {
-                //TODO better error message explaining whats wrong
-                throw new WireException(sprintf($this->_("only width or height allowed for namedCrop"), $cropName));
-            }
-            if (isset($argumentOptions['width']) && (int) $argumentOptions['width'] > 0) {
-                $width = (int) $argumentOptions['width'];
-                $height = (int) ($width * ($cropSettingHeight / $cropSettingWidth));
-                unset($argumentOptions['width']);
-            }
-            if (isset($argumentOptions['height']) && (int) $argumentOptions['height'] > 0) {
-                $height = (int) $argumentOptions['height'];
-                $width = (int) ($height * ($cropSettingWidth / $cropSettingHeight));
-                unset($argumentOptions['height']);
-            }
-//        }
+        if (isset($argumentOptions['width']) && (int)$argumentOptions['width'] > 0 && isset($argumentOptions['height']) && (int)$argumentOptions['height'] > 0) {
+            //TODO better error message explaining whats wrong
+            throw new WireException(sprintf($this->_("only width OR height allowed for namedCrop"), $cropName));
+        }
+        if (isset($argumentOptions['width']) && (int)$argumentOptions['width'] > 0) {
+            $width = (int)$argumentOptions['width'];
+            $height = (int)($width * ($cropSettingHeight / $cropSettingWidth));
+            unset($argumentOptions['width']);
+        }
+        if (isset($argumentOptions['height']) && (int)$argumentOptions['height'] > 0) {
+            $height = (int)$argumentOptions['height'];
+            $width = (int)($height * ($cropSettingWidth / $cropSettingHeight));
+            unset($argumentOptions['height']);
+        }
 
         $mergedOptions = array_merge($argumentOptions, array('cropping' => 'inside', 'namedCrop' => $cropName));
         $event->return = $pageImage->size($width, $height, $mergedOptions);
     }
 
     // modified from fieldtype cropimage
-    public function _getInputFieldInstance(HookEvent $event)
+    public function getInputFieldInstance(HookEvent $event)
     {
         $field = null; // where we'll keep the field we're looking for
         $image = $event->object;

@@ -23,16 +23,15 @@ class InputfieldImageFocusArea extends InputfieldImage
     {
         return array(
 
-                'title' => __('Images FocusArea Inputfield', __FILE__),
-                'summary' => __('Extends InputfieldImage with the option to choose a focusarea in the image', __FILE__),
-                'version' => '0.5.1',
-                'author' => "Philipp Schreier (interrobang)",
-                'requires' => array('ProcessWire>=2.5.6', 'FieldtypeImageFocusArea'),
-                'installs' => array('FieldtypeImageFocusArea'),
-                'icon' => 'crosshairs'
+            'title' => __('Images FocusArea Inputfield', __FILE__),
+            'summary' => __('Extends InputfieldImage with the option to choose a focusarea in the image', __FILE__),
+            'version' => '0.5.1',
+            'author' => "Philipp Schreier (interrobang)",
+            'requires' => array('ProcessWire>=2.5.6', 'FieldtypeImageFocusArea'),
+            'installs' => array('FieldtypeImageFocusArea'),
+            'icon' => 'crosshairs'
         );
     }
-
 
 
     public function init()
@@ -54,8 +53,7 @@ class InputfieldImageFocusArea extends InputfieldImage
     {
         $out = parent::renderItemDescriptionField($pageImage, $id, $n);
 
-        $subfieldName = 'focus';
-        $for = $subfieldName . "_" . $id;
+        $for = "focus_" . $id;
         $data_inputtarget = "data-inputtarget='$for' ";
 
         $out .= "<div class='InputfieldImageFocusArea_links'>";
@@ -63,22 +61,10 @@ class InputfieldImageFocusArea extends InputfieldImage
         // =============================================================================
         // json storage field
         // =============================================================================
-        $value = $this->sanitizer->entities($pageImage->$subfieldName);
-        $out .= "<textarea style='display:none' name='$for' id='$for'>$value</textarea>";
+        $value = $this->sanitizer->entities($pageImage->focus);
+        $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
 
-        $allFocusSettings = json_decode($pageImage->$subfieldName);
-//        if (isset($argumentOptions['namedCrop'])) {
-//            $focusName = $argumentOptions['namedCrop'];
-//        } else {
-//            $focusName = 'focus';
-//        }
-//        $focusSettings = $allFocusSettings->$focusName;
-
-        // =============================================================================
-        // Preview Image
-        // =============================================================================
-        /** @var Pageimage $previewImage */
-
+        $allFocusSettings = json_decode($pageImage->focus);
 
         // =============================================================================
         // Focusarea Edit Links
@@ -89,13 +75,9 @@ class InputfieldImageFocusArea extends InputfieldImage
             $focusSettings = $allFocusSettings->focus;
         }
 
-//        if ($focusSettings) {
-//            $focusButtonLabel = __('Edit/Remove Image Focusarea');
-//        } else {
-//            $focusButtonLabel = __('Add Image Focusarea');
-//        }
         $focusButtonLabel = __('Focusarea');
-        $out .= "<a href='#' class='button-setfocus' $data_inputtarget data-key='focus' title='$focusButtonLabel'>" . $this->getCropPreviewMarkup($pageImage, $focusSettings) . "<i class='fa fa-crosshairs'></i> <span class='ui-button-text'>
+        $out .= "<a href='#' class='button-setfocus' $data_inputtarget data-key='focus' title='$focusButtonLabel'>" . $this->getCropPreviewMarkup($pageImage,
+                $focusSettings) . "<i class='fa fa-crosshairs'></i> <span class='ui-button-text'>
 $focusButtonLabel</span></a>";
 
 
@@ -104,7 +86,7 @@ $focusButtonLabel</span></a>";
         // =============================================================================
         $rawCropsSettings = $this->cropSettings;
         if (strlen($rawCropsSettings) > 3) {
-            $page = $this->pages->get((int) $this->input->get->id);
+            $page = $this->pages->get((int)$this->input->get->id);
             if (!$page->id || !$page->editable()) {
                 throw new WirePermissionException();
             }
@@ -118,25 +100,28 @@ $focusButtonLabel</span></a>";
                 $cropName = $cropItemSettings[0];
                 $focusButtonLabel = $cropName;
 
-                if (count($cropItemSettings) > 3) {
-                    // check if cropItem can be used on current template
-                    $cropItemTemplates = array_slice($cropItemSettings, 3);
-                    if (!in_array($page->template, $cropItemTemplates)) {
-                        continue;
-                    }
-                }
+                // Use template field context to override cropSettings for specific templates
+
+//                if (count($cropItemSettings) > 3) {
+//                    // check if cropItem can be used on current template
+//                    $cropItemTemplates = array_slice($cropItemSettings, 3);
+//                    if (!in_array($page->template, $cropItemTemplates)) {
+//                        continue;
+//                    }
+//                }
+
                 $data_ratio = '';
-                if ((int) $cropItemSettings[1] > 0 ||(int) $cropItemSettings[2] > 0) {
-                    $data_ratio = "data-ratiowidth='" . (int) $cropItemSettings[1] . "' data-ratioheight='" . (int) $cropItemSettings[2] . "'";
+                if ((int)$cropItemSettings[1] > 0 || (int)$cropItemSettings[2] > 0) {
+                    $data_ratio = "data-ratiowidth='" . (int)$cropItemSettings[1] . "' data-ratioheight='" . (int)$cropItemSettings[2] . "'";
                 }
                 $focusSettings = false;
                 if (isset($allFocusSettings->$cropName)) {
                     $focusSettings = $allFocusSettings->$cropName;
                 }
                 $out .= "<a href='#' class='button-setfocus button-setfocus--crop' $data_inputtarget $data_ratio data-key='$cropName' title='$focusButtonLabel'>" . $this->getCropPreviewMarkup(
-                                $pageImage,
-                                $focusSettings
-                        ) . "<i class='fa fa-crop'></i>
+                        $pageImage,
+                        $focusSettings
+                    ) . "<i class='fa fa-crop'></i>
  <span class='ui-button-text'>$focusButtonLabel</span></a>";
             }
         }
@@ -149,8 +134,11 @@ $focusButtonLabel</span></a>";
 
     protected function getCropPreviewMarkup(Pageimage $pageImage, $focusSettings)
     {
-
-        $previewImage = $pageImage->size(300, 200, array('upscaling' => false, 'cropping' => false, 'forceNew' => false));
+        $previewImage = $pageImage->size(300, 200,
+            array(
+                'upscaling' => false,
+                'cropping' => false
+            ));
         $imgWidth = $previewImage->width;
         $imgHeight = $previewImage->height;
         $originalWidth = $previewImage->original->width;
@@ -158,6 +146,7 @@ $focusButtonLabel</span></a>";
 
         $previewMarkup = "<div class='InputfieldImageFocusArea_preview'>";
         $previewMarkup .= "<img src='{$previewImage->url}' width='$imgWidth' height='$imgHeight' />";
+
         if ($focusSettings) {
             $left = ($focusSettings->x / $originalWidth) * 100 . '%';
             $top = ($focusSettings->y / $originalHeight) * 100 . '%';
@@ -166,30 +155,53 @@ $focusButtonLabel</span></a>";
             $focusMarkerMarkup = "<div class='InputfieldImageFocusArea_marker' style='left: $left; top:$top; width: $w; height: $h'></div>";
             $previewMarkup .= $focusMarkerMarkup;
         }
+
         $previewMarkup .= "</div>";
-//        return '';
+
         return $previewMarkup;
     }
 
+
+    /**
+     * Get any custom configuration fields for this Inputfield
+     *
+     * Intended to be extended by each Inputfield as needed to add more config options.
+     *
+     * NOTE: Inputfields with a name that starts with an underscore, i.e. "_myname" are assumed to be for runtime
+     * use and are NOT stored in the database.
+     *
+     * @return InputfieldWrapper
+     *
+     */
     public function ___getConfigInputfields()
     {
-
         $inputfields = parent::___getConfigInputfields();
-
 
         $field = $this->modules->get("InputfieldTextarea");
         $field->attr('name', 'cropSettings');
-        $field->attr('value', $this->sanitizer->textarea($this->cropSettings) );
+        $field->attr('value', $this->sanitizer->textarea($this->cropSettings));
         $field->label = $this->_("Thumbnail Settings");
         $field->description = $this->_(
-                'Enter all crop dimensions, one on each line in this format: name,width,height. Few examples: "thumbnail,200,200" or "portrait,200,600". Optionally, you can limit the visibility of the thumbnails to the selected template, giving as the last parameter, the name of the template. Example: "thumbnail,200,200,base-page,home"'
+            'Enter all crop dimensions, one on each line in this format: name,width,height. Few examples: "thumb,200,200" or "portrait,200,600". If you do not want a fixed aspectratio you can set width or height to "0". For Example: "thumb,200,0"'
         );
-
-        //$fieldset->add($field);
 
         $inputfields->add($field);
 
         return $inputfields;
+    }
+
+    /**
+     * Return a list of Inputfield names from getConfigInputfields() that are allowed in fieldgroup/template context
+     *
+     * @param Field $field
+     * @return array of Inputfield names
+     *
+     */
+    public function ___getConfigAllowContext($field)
+    {
+        $contextFields = parent::___getConfigAllowContext($field);
+        $contextFields[] = 'cropSettings';
+        return $contextFields;
     }
 
 
@@ -202,9 +214,7 @@ $focusButtonLabel</span></a>";
         $for = $name . "_" . $id;
         $value = $input->$for;
 
-//        $this->warning('Before: ' . $value);
         $value = $this->sanitizer->textarea($value);
-//        $this->warning('After: ' . $value);
 
         if ($pagefile->$name != $value) {
             $pagefile->set($name, $value);
