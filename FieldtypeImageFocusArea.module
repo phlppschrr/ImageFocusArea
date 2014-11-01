@@ -375,7 +375,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
             unset($argumentOptions['height']);
         }
 
-        $mergedOptions = array_merge($argumentOptions, array('cropping' => 'inside', 'namedCrop' => $cropName));
+        $mergedOptions = array_merge($argumentOptions, array('cropping' => 'inside', 'cropset' => $cropName));
         $event->return = $pageImage->size($width, $height, $mergedOptions);
     }
 
