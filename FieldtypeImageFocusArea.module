@@ -319,11 +319,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         $pageImage = $event->object;
         $thumbFound = false;
         $cropName = $event->arguments[0];
-
-        /** @var InputfieldImageFocusArea $inputFieldInstance */
         $inputFieldInstance = $this->getInputFieldInstance($event);
 
-        //TODO Why return TRUE?
         if (!$inputFieldInstance) {
             return true;
         }
@@ -331,7 +328,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         // read crop settings from InputfieldCropImage
         $crops = $inputFieldInstance->cropSettings;
         //FIXME get cropSettings in context of template
-//        $crops = $pageImage->page->template->fieldgroup->getField('cropSettings', true);
+//        $f = $pageImage->page->template->fieldgroup->getField('FIELDNAME', true);
+        // $f->cropSettings
 
         // and we continue...
         $crops_a = explode("\n", $crops); // ie. thumbname,200,200 (name,width,height)
@@ -437,10 +435,8 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
      */
     protected function getInputFieldInstance(HookEvent $event)
     {
-        $field = null; // where we'll keep the field we're looking for
         $image = $event->object;
         $page = $image->page;
-        $action = $event->arguments[0];
 
         // find all fields of type FieldtypeImage that are part of the page we're using
         // or regular image fields with InputfieldImage inputfield assigned
@@ -454,6 +450,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         }
 
         // loop through to find the one we're looking for
+        /** @var FieldtypeImageFocusArea $imageField */
         foreach ($imageFields as $imageField) {
 
             // good to get unformatted in case it's a single image field,
@@ -462,14 +459,15 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
 
             // if the image's pagefiles property matches the one with the
-            // field we're looking at, we have a match. save in $field
+            // field we're looking at, we have a match.
             if ($image->pagefiles === $pagefiles) {
-                $field = $imageField->getInputfield($page);
-                break;
+                // return InputField in context of page template
+                $f = $page->template->fieldgroup->getField($imageField->name, true);
+                return $f;
             }
         }
 
-        return $field;
+        return null;
     }
 
     /**
