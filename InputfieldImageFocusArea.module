@@ -25,7 +25,7 @@ class InputfieldImageFocusArea extends InputfieldImage
 
             'title' => __('Images FocusArea Inputfield', __FILE__),
             'summary' => __('Extends InputfieldImage with the option to choose a focusarea in the image', __FILE__),
-            'version' => '0.5.1',
+            'version' => '0.6.0',
             'author' => "Philipp Schreier (interrobang)",
             'requires' => array('ProcessWire>=2.5.6', 'FieldtypeImageFocusArea'),
             'installs' => array('FieldtypeImageFocusArea'),
@@ -76,9 +76,10 @@ class InputfieldImageFocusArea extends InputfieldImage
         }
 
         $focusButtonLabel = __('Focusarea');
-        $out .= "<a href='#' class='button-setfocus' $data_inputtarget data-key='focus' title='$focusButtonLabel'>" . $this->getCropPreviewMarkup($pageImage,
-                $focusSettings) . "<i class='fa fa-crosshairs'></i> <span class='ui-button-text'>
-$focusButtonLabel</span></a>";
+        $out .= "<a href='#' class='button-setfocus' $data_inputtarget data-key='focus' title='$focusButtonLabel'>"
+             . $this->getCropPreviewMarkup($pageImage, $focusSettings)
+             . "<i class='fa fa-crosshairs'></i>"
+             . "<span class='ui-button-text'>$focusButtonLabel</span></a>";
 
 
         // =============================================================================
@@ -100,7 +101,7 @@ $focusButtonLabel</span></a>";
                 $cropName = $cropItemSettings[0];
                 $focusButtonLabel = $cropName;
 
-                // Use template field context to override cropSettings for specific templates
+                // Use template field context to override cropSettings for specific templates, PW 2.5.7+
 
 //                if (count($cropItemSettings) > 3) {
 //                    // check if cropItem can be used on current template
@@ -118,11 +119,10 @@ $focusButtonLabel</span></a>";
                 if (isset($allFocusSettings[$cropName])) {
                     $focusSettings = $allFocusSettings[$cropName];
                 }
-                $out .= "<a href='#' class='button-setfocus button-setfocus--crop' $data_inputtarget $data_ratio data-key='$cropName' title='$focusButtonLabel'>" . $this->getCropPreviewMarkup(
-                        $pageImage,
-                        $focusSettings
-                    ) . "<i class='fa fa-crop'></i>
- <span class='ui-button-text'>$focusButtonLabel</span></a>";
+                $out .= "<a href='#' class='button-setfocus button-setfocus--crop' $data_inputtarget $data_ratio data-key='$cropName' title='$focusButtonLabel'>"
+                     . $this->getCropPreviewMarkup($pageImage, $focusSettings)
+                     . "<i class='fa fa-crop'></i>"
+                     . "<span class='ui-button-text'>$focusButtonLabel</span></a>";
             }
         }
         // close .InputfieldImageFocusArea_links
@@ -132,7 +132,7 @@ $focusButtonLabel</span></a>";
     }
 
 
-    protected function getCropPreviewMarkup(Pageimage $pageImage, $focusSettings)
+    public function getCropPreviewMarkup(Pageimage $pageImage, $focusSettings)
     {
         $previewImage = $pageImage->size(300, 200,
             array(

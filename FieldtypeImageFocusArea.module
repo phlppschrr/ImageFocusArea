@@ -24,7 +24,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         return array(
                 'title' => __('Images FocusArea Fieldtype', __FILE__),
                 'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
-                'version' => '0.5.3',
+                'version' => '0.6.0',
                 'author' => "Philipp Schreier (interrobang)",
                 'icon' => 'crosshairs',
                 'singular' => false,
@@ -107,10 +107,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         if ($pageImage->focus) {
 
-            $argumentOptions = $event->arguments('options');
-            $argumentOptions = $this->sanitizePageImageOptions($argumentOptions);
+            $options = $event->arguments('options');
+            $options = $this->sanitizePageImageOptions($options);
 
-            $focusSettings = $this->getFocusSettings($pageImage, $argumentOptions);
+            $focusSettings = $this->getFocusSettings($pageImage, $options);
             if (!$focusSettings) return;
 
             $defaultOptions = array(
@@ -121,9 +121,12 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                     'forceNew' => false,  // force it to create new image even if already exists
             );
 
-            if (in_array($argumentOptions['cropping'], array('align', 'inside', 'outside'), true)) {
+            // fallback to 'align' cropping
+            if (!isset($options['cropping'])) $options['cropping'] = 'align';
+
+            if (in_array($options['cropping'], array('align', 'inside', 'outside'), true)) {
                 // a valid cropping option for this field was found
-                $focusMode = $argumentOptions['cropping'];
+                $focusMode = $options['cropping'];
             } else {
                 // use the user set cropping option, nothing to do for us
                 return;
@@ -134,7 +137,6 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
             $originalWidth = $pageImage->width();
             $originalHeight = $pageImage->height();
 
-
             $cropping = array();
             $cropping[0] = ((($focusSettings['x'] + $focusSettings['x2']) / 2) / $originalWidth) * 100 . '%';
             $cropping[1] = ((($focusSettings['y'] + $focusSettings['y2']) / 2) / $originalHeight) * 100 . '%';
@@ -143,7 +145,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
             switch ($focusMode) {
                 case 'align':
                     // use center of croppingBox for alignment
-                    $argumentOptions['cropping'] = $cropping;
+                    $options['cropping'] = $cropping;
                     break;
 
                 case 'inside':
@@ -153,9 +155,9 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                             'w' => (int) $focusSettings['w'],
                             'h' => (int) $focusSettings['h']
                     );
-                    $argumentOptions['cropExtra'] = $cropExtra;
+                    $options['cropExtra'] = $cropExtra;
                     // use default (center) cropping on the remaining image:
-                    unset($argumentOptions['cropping']);
+                    unset($options['cropping']);
                     break;
 
                 case 'outside':
@@ -173,7 +175,6 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                                 'h' => (int) $focusSettings['h']
                         );
 
-                        // should we do this only if upscaling=false?
                         if ($targetHeight > $focusSettings['h']) {
                             $halfMissingHeight = ($targetHeight - $focusSettings['h']) / 2;
 
@@ -205,7 +206,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                                 'w' => (int) $focusSettings['w'],
                                 'h' => (int) $originalHeight
                         );
-                        // should we do this only if upscaling=false?
+
                         if ($targetWidth > $focusSettings['w']) {
                             $halfMissingWidth = ($targetWidth - $focusSettings['w']) / 2;
 
@@ -231,35 +232,34 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                             }
                         }
                     }
-                    $argumentOptions['cropExtra'] = $cropExtra;
-                    $argumentOptions['cropping'] = $cropping;
+                    $options['cropExtra'] = $cropExtra;
+                    $options['cropping'] = $cropping;
                     break;
             }
+
             // Automatically set filename suffix to the same name as the $focusmode/cropping to avoid caching issues as discussed here:
             // https://processwire.com/talk/topic/8079-imagefocusarea/?p=78439
-            if ($focusMode) {
-                $configOptions = wire('config')->imageSizerOptions;
-                if (!is_array($configOptions)) {
-                    $configOptions = array();
-                }
-                $mergedOptions = array_merge($defaultOptions, $configOptions, $argumentOptions);
+
+            $configOptions = wire('config')->imageSizerOptions;
+            if (!is_array($configOptions)) $configOptions = array();
+
+            $mergedOptions = array_merge($defaultOptions, $configOptions, $options);
 //                $suffix = $focusMode;
 //                $suffix .= isset($argumentOptions["suffix"]) ? '-' . $argumentOptions["suffix"] : '';    // $options is the options
 //                $argumentOptions['suffix'] = $suffix;
 
-                $hashOptions = array();
-                if(isset($mergedOptions['cropExtra'])) $hashOptions['cropExtra'] = $mergedOptions['cropExtra'];
-                if(isset($mergedOptions['upscaling'])) $hashOptions['upscaling'] = $mergedOptions['upscaling'];
-                if(isset($mergedOptions['quality'])) $hashOptions['quality'] = $mergedOptions['quality'];
-                if(isset($mergedOptions['sharpening'])) $hashOptions['sharpening'] = $mergedOptions['sharpening'];
-                $hash = md5(json_encode($hashOptions));
+            $hashOptions = array();
+            if(isset($mergedOptions['cropExtra'])) $hashOptions['cropExtra'] = $mergedOptions['cropExtra'];
+            if(isset($mergedOptions['upscaling'])) $hashOptions['upscaling'] = $mergedOptions['upscaling'];
+            if(isset($mergedOptions['quality'])) $hashOptions['quality'] = $mergedOptions['quality'];
+            if(isset($mergedOptions['sharpening'])) $hashOptions['sharpening'] = $mergedOptions['sharpening'];
+            $hash = md5(json_encode($hashOptions));
 
-                $suffix = substr($hash, 0, 8);;
-                $suffix .= isset($argumentOptions["suffix"]) ? '-' . $argumentOptions["suffix"] : '';    // $options is the options
-                $argumentOptions['suffix'] = $suffix;
+            $suffix = substr($hash, 0, 8);;
+            $suffix .= isset($options["suffix"]) ? '-' . $options["suffix"] : '';    // $options is the options
+            $options['suffix'] = $suffix;
 
-                $event->arguments('options', $argumentOptions);
-            }
+            $event->arguments('options', $options);
         }
     }
 
@@ -317,19 +317,15 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
     public function getNamedCrop(HookEvent $event)
     {
         $pageImage = $event->object;
+        $options = $event->arguments(1);
+        if(!is_array($options)) $options = array();
+
         $thumbFound = false;
         $cropName = $event->arguments[0];
-        $inputFieldInstance = $this->getInputFieldInstance($event);
-
-        if (!$inputFieldInstance) {
-            return true;
-        }
+        $inputFieldInstance = $this->getInputFieldInstance($pageImage);
 
         // read crop settings from InputfieldCropImage
         $crops = $inputFieldInstance->cropSettings;
-        //FIXME get cropSettings in context of template
-//        $f = $pageImage->page->template->fieldgroup->getField('FIELDNAME', true);
-        // $f->cropSettings
 
         // and we continue...
         $crops_a = explode("\n", $crops); // ie. thumbname,200,200 (name,width,height)
@@ -349,33 +345,38 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         }
 
         if ($cropSettingWidth < 1 && $cropSettingHeight < 1) {
-            //TODO evtl ein freeform crop anbieten = genauso wie bei standard focusArea
-            throw new WireException(sprintf($this->_("Width AND height not found for thumb: %s"), $cropName));
+            // crop without aspectratio
+            $options['cropset'] = $cropName;
+            $focusSettings = $this->getFocusSettings($pageImage, $options);
+            if (isset($focusSettings['w']) && isset($focusSettings['h'])) {
+                $cropSettingWidth = (int)$focusSettings['w'];
+                $cropSettingHeight = (int)$focusSettings['h'];
+            } else {
+                $cropSettingWidth = $pageImage->width;
+                $cropSettingHeight = $pageImage->height;
+            }
         }
 
         $width = $cropSettingWidth;
         $height = $cropSettingHeight;
-        $argumentOptions = $event->arguments(1);
-        if(!is_array($argumentOptions)){
-            $argumentOptions = array();
-        }
 
-        if (isset($argumentOptions['width']) && (int)$argumentOptions['width'] > 0 && isset($argumentOptions['height']) && (int)$argumentOptions['height'] > 0) {
+        if (isset($options['width']) && (int)$options['width'] > 0
+            && isset($options['height']) && (int)$options['height'] > 0) {
             //TODO better error message explaining whats wrong?
-            throw new WireException(sprintf($this->_("only width OR height allowed for namedCrop"), $cropName));
+            throw new WireException(sprintf($this->_("only width OR height allowed for cropset: %s"), $cropName));
         }
-        if (isset($argumentOptions['width']) && (int)$argumentOptions['width'] > 0) {
-            $width = (int)$argumentOptions['width'];
+        if (isset($options['width']) && (int)$options['width'] > 0) {
+            $width = (int)$options['width'];
             $height = (int)($width * ($cropSettingHeight / $cropSettingWidth));
-            unset($argumentOptions['width']);
+            unset($options['width']);
         }
-        if (isset($argumentOptions['height']) && (int)$argumentOptions['height'] > 0) {
-            $height = (int)$argumentOptions['height'];
+        if (isset($options['height']) && (int)$options['height'] > 0) {
+            $height = (int)$options['height'];
             $width = (int)($height * ($cropSettingWidth / $cropSettingHeight));
-            unset($argumentOptions['height']);
+            unset($options['height']);
         }
 
-        $mergedOptions = array_merge($argumentOptions, array('cropping' => 'inside', 'cropset' => $cropName));
+        $mergedOptions = array_merge($options, array('cropping' => 'inside', 'cropset' => $cropName));
         $event->return = $pageImage->size($width, $height, $mergedOptions);
     }
 
@@ -398,11 +399,6 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                 $options = array('upscaling' => $options);
             }
         }
-        // fallback to 'align' cropping
-        if (!isset($options['cropping'])) {
-            $options['cropping'] = 'align';
-        }
-
         return $options;
     }
 
@@ -431,39 +427,33 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
     // modified from fieldtype cropimage
     /**
      * @param HookEvent $event
+     * @param bool $useFieldgroupContext If set to true, the field will be a clone of the original with context data set. (default is false)
      * @return Inputfield|null
      */
-    protected function getInputFieldInstance(HookEvent $event)
+    protected function getInputFieldInstance(Pagefile $pageFile, $useFieldgroupContext = true)
     {
-        $image = $event->object;
-        $page = $image->page;
+        $file = $pageFile;
+        $page = $file->page;
+        $classname = get_class();
 
-        // find all fields of type FieldtypeImage that are part of the page we're using
-        // or regular image fields with InputfieldImage inputfield assigned
+        // find all fields of type FieldtypeImageFocusArea that are part of the page we're using
         $imageFields = array();
         foreach ($page->fields as $f) {
-            // TODO: is this legacy code or still needed?
-            // if ($f->type instanceof FieldtypeImageFocusArea || ($f->inputfieldClass && $f->inputfieldClass == 'InputfieldCropImage')) {
-            if ($f->type instanceof FieldtypeImageFocusArea) {
+            if ($f->type instanceof $classname) {
                 $imageFields[] = $f;
             }
         }
 
         // loop through to find the one we're looking for
-        /** @var FieldtypeImageFocusArea $imageField */
         foreach ($imageFields as $imageField) {
 
-            // good to get unformatted in case it's a single image field,
-            // because it'll still be an array rather than 1 image
+            // good to get unformatted in case it's a single image field,  because it'll still be an array rather than 1 image
             $pagefiles = $page->getUnformatted($imageField->name);
 
-
-            // if the image's pagefiles property matches the one with the
-            // field we're looking at, we have a match.
-            if ($image->pagefiles === $pagefiles) {
-                // return InputField in context of page template
-                $f = $page->template->fieldgroup->getField($imageField->name, true);
-                return $f;
+            // if the image's pagefiles property matches the one with the field we're looking at, we have a match.
+            if ($file->pagefiles === $pagefiles) {
+                // return InputField (optional) in context of page template
+                return $page->template->fieldgroup->getField($imageField->name, $useFieldgroupContext);
             }
         }
 
