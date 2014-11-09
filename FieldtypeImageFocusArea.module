@@ -82,7 +82,18 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         $this->defaultInputfieldClass = 'InputfieldImageFocusArea';
 
         $this->addHookBefore('Pageimage::size', $this, 'hookPageimageSize');
-        $this->addHook('Pageimage::getCrop', $this, 'getNamedCrop');
+        $this->addHook('Pageimage::getNamedCrop', $this, 'getNamedCrop');
+        /* TODO additionalHooks?
+        crop => cropping=inside
+        cropInside => cropping=inside
+        cropOutside => cropping=outside
+        cropAlign => cropping=align
+        widthInside
+        widthOutside
+        widthAlign
+        ...
+        */
+
         $this->addHookProperty("Pageimage::cssBackgroundPosition", $this, "cssBackgroundPosition");
     }
 
@@ -332,7 +343,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         foreach ($crops_a as $crop) {
             $crop = explode(",", $crop);
-            if ($crop[0] == $cropName) {
+            if (count($crop)>=3 && trim($crop[0]) == $cropName) {
                 $cropSettingWidth = (int) $crop[1];
                 $cropSettingHeight = (int) $crop[2];
                 $thumbFound = true;
@@ -362,7 +373,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         if (isset($options['width']) && (int)$options['width'] > 0
             && isset($options['height']) && (int)$options['height'] > 0) {
-            //TODO better error message explaining whats wrong?
+            //TODO better error message explaining whats wrong? Or allow width AND height and return a cropped inside image?
             throw new WireException(sprintf($this->_("only width OR height allowed for cropset: %s"), $cropName));
         }
         if (isset($options['width']) && (int)$options['width'] > 0) {
@@ -439,7 +450,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         // find all fields of type FieldtypeImageFocusArea that are part of the page we're using
         $imageFields = array();
         foreach ($page->fields as $f) {
-            if ($f->type instanceof $classname) {
+            if ($f->type instanceof FieldtypeImageFocusArea) {
                 $imageFields[] = $f;
             }
         }
@@ -552,12 +563,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
     public function ___sleepValue(Page $page, Field $field, $value)
     {
         $sleepValue = parent::___sleepValue($page, $field, $value);
-        if (!$value instanceof Pagefiles) {
-            return $sleepValue;
-        }
+        if(!$value instanceof Pagefiles) return $sleepValue;
 
         $key = 0;
-        foreach ($value as $item) {
+        foreach ($value as $pagefile) {
             $sleepValue[$key]['focus'] = $value[$sleepValue[$key]['data']]->focus;
             $key++;
         }
