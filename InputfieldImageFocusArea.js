@@ -88,6 +88,13 @@ $(document).ready(function () {
                         var newSaveCoords = jcrop.tellSelect();
                         if (newSaveCoords.w === 0 && newSaveCoords.h === 0) {
                             newSaveCoords = '';
+                        } else {
+                            newSaveCoords.x = Math.round(newSaveCoords.x);
+                            newSaveCoords.x2 = Math.round(newSaveCoords.x2);
+                            newSaveCoords.y = Math.round(newSaveCoords.y);
+                            newSaveCoords.y2 = Math.round(newSaveCoords.y2);
+                            newSaveCoords.w = newSaveCoords.x2 - newSaveCoords.x;
+                            newSaveCoords.h = newSaveCoords.y2 - newSaveCoords.y;
                         }
 
                         saveObj[key] = newSaveCoords;
