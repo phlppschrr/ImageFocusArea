@@ -61,10 +61,15 @@ class InputfieldImageFocusArea extends InputfieldImage
         // =============================================================================
         // json storage field
         // =============================================================================
+        $allFocusSettings = json_decode($pageImage->focus, true);
         $value = $this->sanitizer->entities($pageImage->focus);
+        if (json_last_error() !== JSON_ERROR_NONE){
+            $this->warning('Error reading JSON, ignoring saved focus/cropping data');
+            $value = '';
+            $allFocusSettings = array();
+        }
         $out .= "<input type='hidden' name='$for' id='$for' value='$value' />";
 
-        $allFocusSettings = json_decode($pageImage->focus, true);
 
         // =============================================================================
         // Focusarea Edit Links
@@ -98,7 +103,7 @@ class InputfieldImageFocusArea extends InputfieldImage
                 $rawCropSetting = trim($rawCropSetting);
                 $cropItemSettings = explode(',', $rawCropSetting);
 
-                $cropName = $cropItemSettings[0];
+                $cropName = trim($cropItemSettings[0]);
                 $focusButtonLabel = $cropName;
 
                 // Use template field context to override cropSettings for specific templates, PW 2.5.7+
@@ -182,7 +187,7 @@ class InputfieldImageFocusArea extends InputfieldImage
         $field->attr('value', $this->sanitizer->textarea($this->cropSettings));
         $field->label = $this->_("Thumbnail Settings");
         $field->description = $this->_(
-            'Enter all crop dimensions, one on each line in this format: name,width,height. Few examples: "thumb,200,200" or "portrait,200,600". If you do not want a fixed aspectratio you can set width or height to "0". For Example: "thumb,200,0"'
+            'Enter all crop dimensions, one on each line in this format: name,width,height. Few examples: "thumb,200,200" or "portrait,200,600". If you do not want a fixed aspectratio you can set width and/or height to "0". For Example: "thumb,200,0"'
         );
 
         $inputfields->add($field);
