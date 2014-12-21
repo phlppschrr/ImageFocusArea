@@ -24,7 +24,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         return array(
                 'title' => __('Images FocusArea Fieldtype', __FILE__),
                 'summary' => __('Extends FieldtypeImage with the option to store focus data', __FILE__),
-                'version' => '0.6.0',
+                'version' => '0.6.1',
                 'author' => "Philipp Schreier (interrobang)",
                 'icon' => 'crosshairs',
                 'singular' => false,
@@ -82,7 +82,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         $this->defaultInputfieldClass = 'InputfieldImageFocusArea';
 
         $this->addHookBefore('Pageimage::size', $this, 'hookPageimageSize');
+        // TODO whats the best name?
         $this->addHook('Pageimage::getNamedCrop', $this, 'getNamedCrop');
+        $this->addHook('Pageimage::crop', $this, 'getNamedCrop');
+        $this->addHook('Pageimage::getCrop', $this, 'getNamedCrop');
         /* TODO additionalHooks?
         crop => cropping=inside
         cropInside => cropping=inside
@@ -114,12 +117,16 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
     public function hookPageimageSize(HookEvent $event)
     {
+        /** @var Pageimage $pageImage */
         $pageImage = $event->object;
 
         if ($pageImage->focus) {
 
             $options = $event->arguments('options');
             $options = $this->sanitizePageImageOptions($options);
+
+            $configOptions = wire('config')->imageSizerOptions;
+            if (!is_array($configOptions)) $configOptions = array();
 
             $focusSettings = $this->getFocusSettings($pageImage, $options);
             if (!$focusSettings) return;
@@ -132,8 +139,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
                     'forceNew' => false,  // force it to create new image even if already exists
             );
 
+            $mergedOptions = array_merge($defaultOptions, $configOptions, $options);
+
             // fallback to 'align' cropping
-            if (!isset($options['cropping'])) $options['cropping'] = 'align';
+            if (!isset($mergedOptions['cropping']) || $mergedOptions['cropping']===true) $options['cropping'] = 'align';
 
             if (in_array($options['cropping'], array('align', 'inside', 'outside'), true)) {
                 // a valid cropping option for this field was found
@@ -251,10 +260,7 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
             // Automatically set filename suffix to the same name as the $focusmode/cropping to avoid caching issues as discussed here:
             // https://processwire.com/talk/topic/8079-imagefocusarea/?p=78439
 
-            $configOptions = wire('config')->imageSizerOptions;
-            if (!is_array($configOptions)) $configOptions = array();
 
-            $mergedOptions = array_merge($defaultOptions, $configOptions, $options);
 //                $suffix = $focusMode;
 //                $suffix .= isset($argumentOptions["suffix"]) ? '-' . $argumentOptions["suffix"] : '';    // $options is the options
 //                $argumentOptions['suffix'] = $suffix;
@@ -331,7 +337,6 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
         $options = $event->arguments(1);
         if(!is_array($options)) $options = array();
 
-        $thumbFound = false;
         $cropName = $event->arguments[0];
         $inputFieldInstance = $this->getInputFieldInstance($pageImage);
 
@@ -340,6 +345,10 @@ class FieldtypeImageFocusArea extends FieldtypeImage implements ConfigurableModu
 
         // and we continue...
         $crops_a = explode("\n", $crops); // ie. thumbname,200,200 (name,width,height)
+
+        $thumbFound = false;
+        $cropSettingWidth = 0;
+        $cropSettingHeight = 0;
 
         foreach ($crops_a as $crop) {
             $crop = explode(",", $crop);

@@ -11,13 +11,14 @@
 .InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader{display:block;width:auto;height:0;padding:0;position:relative}
 .InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader>*{display:none}
 .InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader .InputfieldFileStats{display:none;font-size:.8em;position:absolute}
-.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader .InputfieldFileDelete{display:block;position:absolute;right:0;z-index:10}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader .InputfieldFileDelete{display:block;position:absolute;right:5px;z-index:10}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileInfo.InputfieldItemHeader .InputfieldFileDelete>.ui-icon{margin-top:0}
 .InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileItem .InputfieldFileData{overflow:visible!important;display:block!important;height:auto!important;-webkit-transition:opacity 200ms;-moz-transition:opacity 200ms;transition:opacity 200ms}
 .InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileItem .InputfieldFileInfo.ui-state-error~.InputfieldFileData{opacity:.33}
 .InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileItem .InputfieldFileInfo.ui-state-error~.InputfieldFileData .InputfieldImageFocusArea_links{pointer-events:none}
-.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileLink{float:none!important}
+.InputfieldImageFocusArea.InputfieldImageGrid .InputfieldFileLink{background-color:rgba(0,0,0,.66)!important;background-size:contain!important;float:none!important;min-width:100px;min-height:100px}
 .InputfieldImageFocusArea.InputfieldImageGrid .InputfieldImageFocusArea_links{position:relative;font-size:.8em;padding-left:5px}
-.InputfieldImageFocusArea.InputfieldImageGrid .button-setfocus{display:block}
+.InputfieldImageFocusArea.InputfieldImageGrid .button-setfocus{display:block;line-height:1.5}
 .InputfieldImageFocusArea .InputfieldHeader .InputfieldImageListToggle{float:right;padding-right:1em;position:relative}
 .InputfieldStateCollapsed .InputfieldHeader .InputfieldImageListToggle{display:none}
 /*!

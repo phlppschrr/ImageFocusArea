@@ -25,7 +25,7 @@ class InputfieldImageFocusArea extends InputfieldImage
 
             'title' => __('Images FocusArea Inputfield', __FILE__),
             'summary' => __('Extends InputfieldImage with the option to choose a focusarea in the image', __FILE__),
-            'version' => '0.6.0',
+            'version' => '0.6.1',
             'author' => "Philipp Schreier (interrobang)",
             'requires' => array('ProcessWire>=2.5.6', 'FieldtypeImageFocusArea'),
             'installs' => array('FieldtypeImageFocusArea'),
@@ -38,12 +38,14 @@ class InputfieldImageFocusArea extends InputfieldImage
     {
         parent::init();
         $this->set('cropSettings', '');
+        $this->set('hideFocusArea', '');
     }
 
 
     public function ___render()
     {
         $this->config->scripts->add($this->config->urls->InputfieldImageFocusArea . "Jcrop/js/jquery.Jcrop.min.js");
+        $this->config->styles->add($this->config->urls->InputfieldImage . "InputfieldImage.css");
         $this->config->styles->add($this->config->urls->InputfieldImageFocusArea . "Jcrop/css/jquery.Jcrop.min.css");
         return parent::___render();
     }
@@ -74,17 +76,20 @@ class InputfieldImageFocusArea extends InputfieldImage
         // =============================================================================
         // Focusarea Edit Links
         // =============================================================================
-        $focusButtonLabel = '';
-        $focusSettings = false;
-        if (isset($allFocusSettings['focus'])) {
-            $focusSettings = $allFocusSettings['focus'];
-        }
+        if(!$this->hideFocusArea){
 
-        $focusButtonLabel = __('Focusarea');
-        $out .= "<a href='#' class='button-setfocus' $data_inputtarget data-key='focus' title='$focusButtonLabel'>"
-             . $this->getCropPreviewMarkup($pageImage, $focusSettings)
-             . "<i class='fa fa-crosshairs'></i>"
-             . "<span class='ui-button-text'>$focusButtonLabel</span></a>";
+            $focusButtonLabel = '';
+            $focusSettings = false;
+            if (isset($allFocusSettings['focus'])) {
+                $focusSettings = $allFocusSettings['focus'];
+            }
+
+            $focusButtonLabel = __('Focusarea');
+            $out .= "<a href='#' class='button-setfocus' $data_inputtarget data-key='focus' title='$focusButtonLabel'>"
+                 . $this->getCropPreviewMarkup($pageImage, $focusSettings)
+                 . "<i class='fa fa-crosshairs'></i> "
+                 . "<span class='ui-button-text'>$focusButtonLabel</span></a>";
+        }
 
 
         // =============================================================================
@@ -126,8 +131,9 @@ class InputfieldImageFocusArea extends InputfieldImage
                 }
                 $out .= "<a href='#' class='button-setfocus button-setfocus--crop' $data_inputtarget $data_ratio data-key='$cropName' title='$focusButtonLabel'>"
                      . $this->getCropPreviewMarkup($pageImage, $focusSettings)
-                     . "<i class='fa fa-crop'></i>"
-                     . "<span class='ui-button-text'>$focusButtonLabel</span></a>";
+                     . "<i class='fa fa-crop'></i> "
+                     . "<span class='ui-button-text'
+>$focusButtonLabel</span></a>";
             }
         }
         // close .InputfieldImageFocusArea_links
@@ -185,10 +191,21 @@ class InputfieldImageFocusArea extends InputfieldImage
         $field = $this->modules->get("InputfieldTextarea");
         $field->attr('name', 'cropSettings');
         $field->attr('value', $this->sanitizer->textarea($this->cropSettings));
-        $field->label = $this->_("Thumbnail Settings");
+        $field->label = $this->_("FocusArea Thumbnail Settings");
         $field->description = $this->_(
             'Enter all crop dimensions, one on each line in this format: name,width,height. Few examples: "thumb,200,200" or "portrait,200,600". If you do not want a fixed aspectratio you can set width and/or height to "0". For Example: "thumb,200,0"'
         );
+
+        $inputfields->add($field);
+
+        /** @var InputfieldCheckbox $field */
+        $field = $this->modules->get('InputfieldCheckbox');
+        $field->label = $this->_("Hide Default FocusArea Chooser");
+        $field->attr('name','hideFocusArea');
+        $field->attr('autocheck', 1);
+        $field->attr('uncheckedValue', 0);
+        $field->attr('checkedValue', 1);
+        $field->attr('value', $this->hideFocusArea);
 
         $inputfields->add($field);
 
@@ -206,6 +223,7 @@ class InputfieldImageFocusArea extends InputfieldImage
     {
         $contextFields = parent::___getConfigAllowContext($field);
         $contextFields[] = 'cropSettings';
+        $contextFields[] = 'hideFocusArea';
         return $contextFields;
     }
 
